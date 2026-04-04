@@ -35,6 +35,7 @@ print(art)
 *   [UCSD CSE](https://cse.ucsd.edu/)
 *   [Interests](#my-interests)
 *   [Projects](./projects.md)
+*   [README](./README.md)
 *   [Link to my picture](image.png)
 
 ## My Goals
