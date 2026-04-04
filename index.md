@@ -34,7 +34,7 @@ print(art)
 *   [GitHub Profile](https://github.com/phamhscott)
 *   [UCSD CSE](https://cse.ucsd.edu/)
 *   [Interests](#my-interests)
-*   [Projects](/projects.md)
+*   [Projects](./projects.md)
 *   [Link to my picture](image.png)
 
 ## My Goals
