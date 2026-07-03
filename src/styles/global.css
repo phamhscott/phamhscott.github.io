@@ -1,0 +1,134 @@
+/* =========================================================================
+   GLOBAL STYLES & DESIGN TOKENS
+   -------------------------------------------------------------------------
+   Everything visual starts here. The ":root" block below defines "design
+   tokens" — named variables for colors, spacing, fonts, etc. The rest of the
+   site refers to these names (e.g. `var(--accent)`) instead of hardcoding
+   values. Change a token here once and it updates everywhere.
+
+   >> TO PERSONALIZE THE LOOK, start by editing the values in :root. <<
+   ========================================================================= */
+
+:root {
+  /* --- Colors (LIGHT theme) -------------------------------------------- */
+  --accent: #2563eb; /* your brand / link color — change this first! */
+  --accent-hover: #1d4ed8;
+
+  --bg: #ffffff; /* page background */
+  --bg-subtle: #f5f5f5; /* cards, code blocks — a hair off the background */
+  --text: #1a1a1a; /* main body text */
+  --text-muted: #666666; /* dates, captions, secondary text */
+  --border: #e5e5e5; /* hairlines and card borders */
+
+  /* --- Spacing scale --------------------------------------------------- */
+  /* Reusing a small set of sizes keeps the spacing feeling intentional. */
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 2rem;
+  --space-lg: 4rem;
+
+  /* --- Typography ------------------------------------------------------ */
+  /* "System" font stacks: fast (nothing to download) and look native on any OS. */
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas,
+    monospace;
+
+  /* --- Layout ---------------------------------------------------------- */
+  --content-width: 42rem; /* comfortable max width for reading text */
+  --wide-width: 60rem; /* wider container for the projects grid, nav, etc. */
+  --radius: 8px; /* how rounded corners are */
+}
+
+/* --- Colors (DARK theme) ------------------------------------------------
+   When <html> has data-theme="dark", these values OVERRIDE the ones above.
+   Notice we only redefine the colors — spacing, fonts and layout stay shared.
+   ----------------------------------------------------------------------- */
+:root[data-theme="dark"] {
+  --accent: #60a5fa;
+  --accent-hover: #93c5fd;
+
+  --bg: #0f0f10;
+  --bg-subtle: #1a1a1c;
+  --text: #ededed;
+  --text-muted: #a1a1a1;
+  --border: #2a2a2d;
+}
+
+/* =========================================================================
+   BASE STYLES
+   A small set of sensible defaults that build on the tokens above.
+   ========================================================================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column; /* lets the footer sit at the bottom on short pages */
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  /* Fade colors when the theme flips, so it isn't a harsh snap. */
+  transition: background-color 0.2s ease, color 0.2s ease;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The <main> grows to fill space so the footer is pushed down. */
+main {
+  flex: 1;
+}
+
+/* Centers content and keeps a consistent gutter on the sides. */
+.container {
+  width: 100%;
+  max-width: var(--wide-width);
+  margin-inline: auto;
+  padding-inline: var(--space-sm);
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Inline code and code blocks */
+code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--bg-subtle);
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+}
+pre {
+  background: var(--bg-subtle);
+  padding: var(--space-sm);
+  border-radius: var(--radius);
+  overflow-x: auto; /* long lines scroll instead of breaking the layout */
+}
+pre code {
+  background: none;
+  padding: 0;
+}

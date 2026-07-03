@@ -1,0 +1,60 @@
+---
+// BaseLayout.astro — the HTML "shell" that EVERY page shares.
+// Write it once here; each page fills in the middle through <slot />.
+//
+// The code between the "---" fences is called the component's "frontmatter":
+// JavaScript/TypeScript that runs at build time (on the server, never in the
+// browser). Here we import the shared pieces and declare the props a page can
+// pass in.
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import "../styles/global.css";
+
+// `Props` describes what a page is allowed to pass to this layout.
+interface Props {
+  title: string;
+  description?: string; // the `?` marks it optional
+}
+
+// Pull the props out, with a sensible default for description.
+const { title, description = "Scott — projects and writing." } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+
+    {/*
+      ANTI-FLASH THEME SCRIPT.
+      This runs immediately, before the page renders, so the correct theme is
+      applied before the first paint. (Without it, a dark-mode visitor would
+      briefly see a white flash.) `is:inline` tells Astro to leave this script
+      exactly as written, right here in the <head>.
+      Logic: use the saved choice if there is one, otherwise follow the OS setting.
+    */}
+    <script is:inline>
+      const saved = localStorage.getItem("theme");
+      const prefersDark = window.matchMedia(
+        "(prefers-color-scheme: dark)",
+      ).matches;
+      document.documentElement.dataset.theme =
+        saved ?? (prefersDark ? "dark" : "light");
+    </script>
+  </head>
+  <body>
+    <Header />
+
+    {/* Each page's content is injected here, where <slot /> sits. */}
+    <main class="container">
+      <slot />
+    </main>
+
+    <Footer />
+  </body>
+</html>

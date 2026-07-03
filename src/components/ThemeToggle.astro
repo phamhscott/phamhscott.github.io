@@ -1,0 +1,55 @@
+---
+// ThemeToggle.astro — the light/dark switch button.
+// The BUTTON lives here; the small <script> at the bottom wires up what
+// happens on click. (The *initial* theme was already set by the anti-flash
+// script in BaseLayout's <head>.)
+---
+
+<button id="theme-toggle" type="button" aria-label="Toggle color theme">
+  {/* Both icons are always in the DOM; CSS shows whichever fits the theme. */}
+  <span class="icon sun" aria-hidden="true">☀️</span>
+  <span class="icon moon" aria-hidden="true">🌙</span>
+</button>
+
+<style>
+  #theme-toggle {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.3rem 0.5rem;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    color: var(--text);
+  }
+  #theme-toggle:hover {
+    background: var(--bg-subtle);
+  }
+
+  /* In LIGHT mode, show the moon (click it to GO dark). Hide the sun. */
+  .icon.sun {
+    display: none;
+  }
+  .icon.moon {
+    display: inline;
+  }
+  /* In DARK mode, flip which icon shows. `:global(...)` lets this scoped
+     component react to the data-theme attribute that lives on <html>. */
+  :global(:root[data-theme="dark"]) .icon.sun {
+    display: inline;
+  }
+  :global(:root[data-theme="dark"]) .icon.moon {
+    display: none;
+  }
+</style>
+
+<script>
+  // Everything in a plain <script> runs in the BROWSER. Astro bundles it for us.
+  const toggle = document.getElementById("theme-toggle");
+  toggle?.addEventListener("click", () => {
+    const current = document.documentElement.dataset.theme;
+    const next = current === "dark" ? "light" : "dark";
+    document.documentElement.dataset.theme = next; // flip the theme now
+    localStorage.setItem("theme", next); // remember it for next visit
+  });
+</script>

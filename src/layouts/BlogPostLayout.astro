@@ -1,0 +1,87 @@
+---
+// BlogPostLayout.astro — the layout for a SINGLE blog post.
+//
+// Notice this layout wraps BaseLayout: layouts can be nested. BaseLayout
+// handles the shared shell (head / header / footer); this one adds the
+// post-specific frame (the title and date) and then drops the post's body in
+// through <slot />.
+import BaseLayout from "./BaseLayout.astro";
+
+interface Props {
+  title: string;
+  description: string;
+  pubDate: Date;
+}
+const { title, description, pubDate } = Astro.props;
+
+// A small helper to display the date nicely, e.g. "July 3, 2026".
+const formatDate = (date: Date) =>
+  date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+---
+
+<BaseLayout title={title} description={description}>
+  <article class="post">
+    <header class="post-header">
+      <h1>{title}</h1>
+      <time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time>
+    </header>
+
+    {/* The rendered Markdown body lands here. */}
+    <div class="prose">
+      <slot />
+    </div>
+
+    <p class="back"><a href="/blog">← Back to all posts</a></p>
+  </article>
+</BaseLayout>
+
+<style>
+  .post {
+    max-width: var(--content-width);
+    margin-inline: auto;
+  }
+  .post-header {
+    margin-block: var(--space-md);
+  }
+  .post-header h1 {
+    margin: 0 0 var(--space-xs);
+    font-size: 2rem;
+  }
+  .post-header time {
+    color: var(--text-muted);
+  }
+  .back {
+    margin-top: var(--space-lg);
+  }
+
+  /* The Markdown-rendered elements don't carry this component's scope
+     attribute, so we use `:global(...)` to style them. This gives the article
+     body comfortable spacing. */
+  .prose :global(p),
+  .prose :global(ul),
+  .prose :global(ol),
+  .prose :global(pre),
+  .prose :global(blockquote) {
+    margin: 0 0 var(--space-sm);
+  }
+  .prose :global(h2) {
+    margin: var(--space-md) 0 var(--space-sm);
+  }
+  .prose :global(h3) {
+    margin: var(--space-md) 0 var(--space-xs);
+  }
+  .prose :global(ul),
+  .prose :global(ol) {
+    padding-left: 1.4rem;
+  }
+  .prose :global(blockquote) {
+    border-left: 3px solid var(--border);
+    padding-left: var(--space-sm);
+    margin-inline: 0;
+    color: var(--text-muted);
+  }
+</style>

@@ -1,0 +1,162 @@
+---
+// index.astro — your landing page (the site's home, at "/").
+// It pulls in the shared layout, your projects data, and the ProjectCard
+// component, then arranges everything into sections.
+import BaseLayout from "../layouts/BaseLayout.astro";
+import ProjectCard from "../components/ProjectCard.astro";
+import { projects } from "../data/projects";
+import { coursework } from "../data/coursework";
+
+// ---- EDIT YOUR CONTACT LINKS HERE ----
+const links = {
+  github: "https://github.com/phamhscott",
+  email: "mailto:phamhscott@gmail.com",
+  // Add more if you like, e.g. linkedin, x, bluesky, mastodon...
+};
+---
+
+<BaseLayout title="Scott — Home">
+  {/* ---------------- HERO / ABOUT ---------------- */}
+  <section class="hero">
+    <h1>Scott Pham </h1>
+    <p class="lead">
+      Hello! This is my corner of the internet, where I
+      showcase what I'm working on and write about what I'm learning.
+    </p>
+  </section>
+
+  {/* ---------------- PROJECTS ---------------- */}
+  <section class="section">
+    <h2>Projects</h2>
+    {/* Loop over the projects list and render a row for each one. */}
+    <div class="project-list">
+      {projects.map((project) => <ProjectCard {...project} />)}
+    </div>
+  </section>
+
+  {/* ---------------- COURSEWORK ---------------- */}
+  <section class="section">
+    <h2>Coursework</h2>
+    <p class="section-intro">
+      Selected projects and assignments from my CS classes.
+    </p>
+    <div class="coursework-list">
+      {
+        coursework.map((course) => (
+          <article class="course">
+            <div class="course-head">
+              <span class="course-code">{course.code}</span>
+              <span class="course-name">{course.name}</span>
+            </div>
+            <p class="course-desc">{course.description}</p>
+            {course.tags && (
+              <ul class="tags">
+                {course.tags.map((tag) => (
+                  <li>{tag}</li>
+                ))}
+              </ul>
+            )}
+          </article>
+        ))
+      }
+    </div>
+  </section>
+
+  {/* ---------------- CONTACT ---------------- */}
+  <section class="section">
+    <h2>Get in touch</h2>
+    <div class="contact-links">
+      <a href={links.github}>GitHub</a>
+      <a href={links.email}>Email</a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero {
+    padding-block: var(--space-lg) var(--space-md);
+  }
+  .hero h1 {
+    font-size: 2.5rem;
+    margin: 0 0 var(--space-sm);
+  }
+  .lead {
+    font-size: 1.15rem;
+    color: var(--text-muted);
+    max-width: var(--content-width);
+  }
+  .section {
+    margin-block: var(--space-lg);
+  }
+  .section h2 {
+    margin-bottom: var(--space-sm);
+  }
+  /* A vertical list. Each project is a full-width row; the row's own top
+     border (see ProjectCard.astro) draws the divider between them. */
+  .project-list {
+    display: flex;
+    flex-direction: column;
+  }
+  .contact-links {
+    display: flex;
+    gap: var(--space-md);
+    font-weight: 600;
+  }
+
+  /* ---- Coursework section ---- */
+  .section-intro {
+    margin: 0 0 var(--space-sm);
+    color: var(--text-muted);
+  }
+  .coursework-list {
+    display: flex;
+    flex-direction: column;
+  }
+  .course {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    padding-block: var(--space-md);
+    border-bottom: 1px solid var(--border); /* matches the project rows */
+  }
+  .course-head {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+  /* Monospace + accent makes the course code read like a label. */
+  .course-code {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .course-name {
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+  .course-desc {
+    margin: 0;
+    color: var(--text-muted);
+    max-width: 65ch;
+  }
+  /* Same pill style as the project tags. (If you find yourself copying this a
+     third time, that's the signal to move it into global.css.) */
+  .tags {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 0;
+    margin: 0;
+  }
+  .tags li {
+    font-size: 0.75rem;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.15rem 0.6rem;
+    color: var(--text-muted);
+  }
+</style>

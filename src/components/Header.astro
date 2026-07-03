@@ -1,0 +1,50 @@
+---
+// Header.astro — the top navigation bar, shown on every page (via BaseLayout).
+import ThemeToggle from "./ThemeToggle.astro";
+---
+
+<header class="site-header">
+  <nav class="container nav">
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="/blog">Blog</a>
+    </div>
+    <ThemeToggle />
+  </nav>
+</header>
+
+<style>
+  /* Styles inside a .astro <style> block are "scoped": Astro adds a hidden
+     attribute so these rules only affect THIS component. So `.nav` here can't
+     accidentally clash with a `.nav` in another file. */
+  .site-header {
+    border-bottom: 1px solid var(--border);
+    position: sticky; /* keeps the nav visible as you scroll */
+    top: 0;
+    background: var(--bg);
+    z-index: 10;
+  }
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-block: var(--space-sm);
+  }
+  .brand {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text);
+  }
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+  .nav-links a {
+    color: var(--text-muted);
+  }
+  .nav-links a:hover {
+    color: var(--text);
+    text-decoration: none;
+  }
+</style>

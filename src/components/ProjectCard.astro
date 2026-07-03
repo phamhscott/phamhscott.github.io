@@ -1,0 +1,117 @@
+---
+// ProjectCard.astro — renders ONE project as a horizontal ROW. The homepage
+// loops over your projects and renders one of these per project, so editing
+// this single file restyles every row at once.
+//
+// We reuse the same `Project` shape defined alongside the data, so the row and
+// the data can never drift out of sync.
+import type { Project } from "../data/projects";
+
+// This component's props ARE a Project.
+type Props = Project;
+const { title, description, tags = [], url, repo, status } = Astro.props;
+---
+
+<article class="project-row">
+  {/* Left side: the title (+ tags) and the description. */}
+  <div class="row-main">
+    <div class="row-head">
+      <h3 class="row-title">{title}</h3>
+      {/* Optional status pill, e.g. "In progress". Only shows if set. */}
+      {status && <span class="status-badge">{status}</span>}
+      {
+        tags.length > 0 && (
+          <ul class="tags">
+            {tags.map((tag) => (
+              <li>{tag}</li>
+            ))}
+          </ul>
+        )
+      }
+    </div>
+    <p class="row-desc">{description}</p>
+  </div>
+
+  {/* Right side: the links. Each only appears if you provided that field. */}
+  <div class="row-links">
+    {url && <a href={url}>Visit </a>}
+    {repo && <a href={repo}>Code </a>}
+  </div>
+</article>
+
+<style>
+  .project-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-md);
+    padding-block: var(--space-md);
+    border-bottom: 1px solid var(--border); /* the divider between rows */
+  }
+  .row-main {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+  /* Title and tags sit on the same line, wrapping if there's no room. */
+  .row-head {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+  .row-title {
+    margin: 0;
+    font-size: 1.15rem;
+  }
+  /* The status pill is accent-outlined so it reads differently from the
+     gray tech tags below it. */
+  .status-badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    padding: 0.1rem 0.55rem;
+  }
+  .row-desc {
+    margin: 0;
+    color: var(--text-muted);
+    max-width: 55ch; /* keep descriptions readable, not too wide */
+  }
+  .tags {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 0;
+    margin: 0;
+  }
+  .tags li {
+    font-size: 0.75rem;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.15rem 0.6rem;
+    color: var(--text-muted);
+  }
+  .row-links {
+    display: flex;
+    gap: var(--space-sm);
+    font-size: 0.9rem;
+    font-weight: 600;
+    flex-shrink: 0; /* don't let the links get squeezed */
+    white-space: nowrap;
+  }
+
+  /* On narrow screens (phones), stack the links under the text instead of
+     beside it. `max-width: 40rem` means "when the screen is 40rem or less". */
+  @media (max-width: 40rem) {
+    .project-row {
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+  }
+</style>
