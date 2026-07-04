@@ -1,0 +1,193 @@
+---
+// ProjectLayout.astro — the layout for a SINGLE project case-study page.
+//
+// Just like BlogPostLayout, this WRAPS BaseLayout (layouts can nest):
+// BaseLayout supplies the shared shell (head / header / footer), and this
+// layout adds the project-specific frame — the title, tagline, status pill,
+// tech tags, and any links — then drops your write-up in through <slot />.
+//
+// Reuse this for every project page you make. To start a new one, copy
+// src/pages/projects/ait.astro and change the frontmatter values.
+import BaseLayout from "./BaseLayout.astro";
+
+// The props a project page passes in. Most mirror the fields on a Project in
+// data/projects.ts, so a card and its detail page describe the same thing.
+interface Props {
+  title: string;
+  tagline: string; // one-line summary shown under the title
+  status?: string; // optional pill, e.g. "In progress" / "Team project"
+  tags?: string[]; // optional tech pills
+  url?: string; // optional live/demo link
+  repo?: string; // optional source link (omit for private repos)
+}
+const { title, tagline, status, tags = [], url, repo } = Astro.props;
+---
+
+<BaseLayout title={`${title} — Scott`} description={tagline}>
+  <article class="project">
+    <header class="project-header">
+      {/* Back to the Projects section on the home page. */}
+      <a class="back-top" href="/#projects">← Projects</a>
+
+      <div class="title-row">
+        <h1>{title}</h1>
+        {status && <span class="status-badge">{status}</span>}
+      </div>
+      <p class="tagline">{tagline}</p>
+
+      {
+        tags.length > 0 && (
+          <ul class="tags">
+            {tags.map((tag) => (
+              <li>{tag}</li>
+            ))}
+          </ul>
+        )
+      }
+
+      {/* Links row. Each link only appears if you passed that prop. */}
+      {
+        (url || repo) && (
+          <div class="header-links">
+            {url && <a href={url}>Live site ↗</a>}
+            {repo && <a href={repo}>Source ↗</a>}
+          </div>
+        )
+      }
+    </header>
+
+    {/* Your write-up (headings, paragraphs, images, video embeds) goes here. */}
+    <div class="prose">
+      <slot />
+    </div>
+
+    <p class="back"><a href="/#projects">← Back to all projects</a></p>
+  </article>
+</BaseLayout>
+
+<style>
+  .project {
+    max-width: var(--content-width);
+    margin-inline: auto;
+  }
+  .project-header {
+    margin-block: var(--space-md);
+  }
+  .back-top {
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+  /* Title and status pill share a line, wrapping if there's no room. */
+  .title-row {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    margin-top: var(--space-sm);
+  }
+  .title-row h1 {
+    margin: 0;
+    font-size: 2rem;
+  }
+  .tagline {
+    margin: var(--space-xs) 0 0;
+    font-size: 1.1rem;
+    color: var(--text-muted);
+  }
+
+  /* Status pill + tag pills reuse the same look as the project rows on the
+     home page. (If you copy these a third time, promote them to global.css.) */
+  .status-badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    padding: 0.1rem 0.55rem;
+  }
+  .tags {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 0;
+    margin: var(--space-sm) 0 0;
+  }
+  .tags li {
+    font-size: 0.75rem;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.15rem 0.6rem;
+    color: var(--text-muted);
+  }
+  .header-links {
+    display: flex;
+    gap: var(--space-md);
+    margin-top: var(--space-sm);
+    font-weight: 600;
+  }
+  .back {
+    margin-top: var(--space-lg);
+  }
+
+  /* Comfortable spacing for the write-up. Same approach as BlogPostLayout:
+     the <slot /> content isn't scoped to this component, so we reach it with
+     :global(...). */
+  .prose :global(p),
+  .prose :global(ul),
+  .prose :global(ol),
+  .prose :global(figure),
+  .prose :global(pre),
+  .prose :global(blockquote) {
+    margin: 0 0 var(--space-sm);
+  }
+  .prose :global(h2) {
+    margin: var(--space-md) 0 var(--space-sm);
+  }
+  .prose :global(h3) {
+    margin: var(--space-md) 0 var(--space-xs);
+  }
+  .prose :global(ul),
+  .prose :global(ol) {
+    padding-left: 1.4rem;
+  }
+  .prose :global(blockquote) {
+    border-left: 3px solid var(--border);
+    padding-left: var(--space-sm);
+    margin-inline: 0;
+    color: var(--text-muted);
+  }
+
+  /* --- Figure (image/diagram + caption) --- */
+  .prose :global(figure) {
+    margin-inline: 0;
+  }
+  .prose :global(figure img) {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .prose :global(figcaption) {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: var(--space-xs);
+    text-align: center;
+  }
+
+  /* --- Responsive video embed ---
+     A YouTube <iframe> has a fixed size by default. Wrapping it in
+     <div class="video"> makes it scale to the page width while keeping a 16:9
+     shape. `aspect-ratio` does the heavy lifting. */
+  .prose :global(.video) {
+    aspect-ratio: 16 / 9;
+    margin: 0 0 var(--space-sm);
+  }
+  .prose :global(.video iframe) {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    border-radius: var(--radius);
+  }
+</style>

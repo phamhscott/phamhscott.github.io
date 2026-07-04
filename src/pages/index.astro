@@ -26,7 +26,9 @@ const links = {
   </section>
 
   {/* ---------------- PROJECTS ---------------- */}
-  <section class="section">
+  {/* `id="projects"` gives this section an anchor, so links like
+      "/#projects" (used by the project detail pages) scroll here. */}
+  <section class="section" id="projects">
     <h2>Projects</h2>
     {/* Loop over the projects list and render a row for each one. */}
     <div class="project-list">

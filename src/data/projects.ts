@@ -13,6 +13,7 @@ export interface Project {
   url?: string; // optional live / demo link
   repo?: string; // optional source-code link
   status?: string; // optional pill, e.g. "In progress" — for WIP/private work
+  caseStudy?: string; // optional link to a detail page, e.g. "/projects/ait"
 }
 
 export const projects: Project[] = [
@@ -28,9 +29,11 @@ export const projects: Project[] = [
   {
     title: "IssueSight",
     description:
-      "An agentic GitHub issue tracker built as a VS Code extension. I built the agent-detection layer: token, commit, model, and session tracking, plus hooks and telemetry.",
-    tags: ["VS Code Extension", "Node.js", "Gemini API", "GitHub Issues API", "Playwright", "Jest"],
+      "An agentic GitHub issue tracker (AIT) built as a VS Code extension. I built the agent-detection backend: an OpenTelemetry + Gemini-hooks receiver that tracks the tokens, models, commits, and tools an AI coding agent uses on an issue.",
+    tags: ["VS Code Extension", "Node.js", "OpenTelemetry", "Gemini CLI", "GitHub Issues API", "Jest"],
     status: "Team project",
+    // Private repo — the on-site case study stands in for a Code link.
+    caseStudy: "/projects/ait",
     url: "https://cse110-sp26-group02.github.io/cse110-sp26-project-site/",
   },
   {

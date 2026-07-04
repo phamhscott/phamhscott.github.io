@@ -9,7 +9,8 @@ import type { Project } from "../data/projects";
 
 // This component's props ARE a Project.
 type Props = Project;
-const { title, description, tags = [], url, repo, status } = Astro.props;
+const { title, description, tags = [], url, repo, status, caseStudy } =
+  Astro.props;
 ---
 
 <article class="project-row">
@@ -32,8 +33,11 @@ const { title, description, tags = [], url, repo, status } = Astro.props;
     <p class="row-desc">{description}</p>
   </div>
 
-  {/* Right side: the links. Each only appears if you provided that field. */}
+  {/* Right side: the links. Each only appears if you provided that field.
+      `caseStudy` points to an on-site write-up page — handy when the repo is
+      private, so there's still a "read more" for the project. */}
   <div class="row-links">
+    {caseStudy && <a href={caseStudy}>Details </a>}
     {url && <a href={url}>Visit </a>}
     {repo && <a href={repo}>Code </a>}
   </div>

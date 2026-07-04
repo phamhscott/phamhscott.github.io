@@ -1,0 +1,603 @@
+---
+// ait.astro — the case-study page for IssueSight (the Agentic Issue Tracker,
+// "AIT"). Lives at "/projects/ait/". Uses ProjectLayout for the frame.
+//
+// Images live in  public/projects/ait/  and are referenced as
+// "/projects/ait/<file>.png". Demo videos are unlisted YouTube embeds.
+import ProjectLayout from "../../layouts/ProjectLayout.astro";
+
+// The shared TypeScript "contract" my partner and I agreed on before writing
+// any code. Kept here as a plain string so the angle brackets render as text
+// (in .astro, a bare "<" in the template would be read as an HTML tag).
+const contractCode = `// The data shapes both halves of the system agreed on up front.
+
+export interface OTelSpan {
+  sessionId:      string;
+  operationName:  string;   // 'llm_call', 'tool_call', etc.
+  model:          string;
+  inputTokens:    number;
+  outputTokens:   number;
+  thinkingTokens: number;
+  durationMs:     number;
+}
+
+export interface ToolInfo {
+  toolName:    string;        // e.g. "run_shell_command", "read_file"
+  command:     string;        // the actual command / args passed
+  description: string;        // what the tool does
+  output:      string;        // what the tool returned
+  timestamp:   string;        // when it was called
+  isCommit:    boolean;       // was this a git commit?
+  commitSha:   string | null; // extracted SHA if it was
+}
+
+export interface SessionContext {
+  sessionId:      string;
+  cwd:            string;
+  repo:           string | null;
+  issueId:        number | null;
+  models:         Set<string>;
+  inputTokens:    number;
+  outputTokens:   number;
+  thinkingTokens: number;
+  totalCost:      number;
+  startedAt:      string;
+  startCommitSha: string | null;
+  toolCalls:      ToolInfo[];
+  agentCommits:   string[];
+}
+
+// The session manager's job, defined as an interface before either of us
+// started implementing — so the receiver and the manager couldn't drift.
+export interface SessionManager {
+  createSession(sessionId: string, cwd: string): void;
+  onSpanReceived(sessionId: string, span: OTelSpan): void;
+  updateTokens(sessionId: string, span: OTelSpan): void;
+  updateToolCalls(sessionId: string, callInfo: ToolInfo): void;
+  claimIssue(sessionId: string, issueId: number): void;
+  finalizeSession(sessionId: string): void;
+  getActiveSession(sessionId: string): SessionContext | null;
+  getAllActiveSessions(): SessionContext[];
+}`;
+---
+
+<ProjectLayout
+  title="IssueSight"
+  tagline="An agentic issue tracker (AIT), built as a VS Code extension. I designed and built the agent-detection backend — the telemetry receiver that measures exactly what an AI coding agent does on a GitHub issue."
+  status="Team project"
+  tags={[
+    "OpenTelemetry",
+    "Gemini CLI",
+    "Node.js",
+    "VS Code Extension",
+    "Jest",
+  ]}
+  url="https://cse110-sp26-group02.github.io/cse110-sp26-project-site/"
+>
+  {/* ---------------- OVERVIEW ---------------- */}
+  <h2>Overview</h2>
+  <p>
+    IssueSight is a VS Code&ndash;native <strong>Agentic Issue Tracker (AIT)</strong>:
+    a GitHub issue tracker that also measures what an AI coding agent actually
+    did while working on each issue &mdash; which models it used, how many tokens
+    it burned, how long it took, which commits it authored, and which tools it
+    ran. It was a team project (eleven people) for a software-engineering
+    course, built as a VS Code extension over a multi-week sprint.
+  </p>
+  <p>
+    I worked on the <strong>agent-detection backend</strong>: the research behind how
+    we detect agent activity at all, the local telemetry <em>receiver</em> that
+    captures it, the auto-setup that wires an agent up to report to us, and the
+    early product demos we used to get stakeholder feedback. The team repo is
+    private, so this page is the walkthrough of what I built and why.
+  </p>
+
+  {/* ---------------- THE PROBLEM ---------------- */}
+  <h2>The problem: measuring an agent deterministically</h2>
+  <p>
+    The hard question wasn&rsquo;t the UI &mdash; it was detection. When a
+    developer points an AI coding agent at a repository, how do you reliably know
+    <em>which repo</em> and <em>which issue</em> it&rsquo;s working on, and how do
+    you capture <em>exactly</em> the model and token usage of every call without
+    trusting the model to self-report? Early on, the whole sub-team&rsquo;s
+    concern was <strong>determinism</strong>: we wanted ground-truth data, not
+    probabilistic guesses.
+  </p>
+  <p>
+    I did the initial research and proposed the architecture we ended up building
+    on. The core idea: capture data from two reliable, local sources instead of
+    prompting the model to describe itself.
+  </p>
+  <ul>
+    <li>
+      <strong>OpenTelemetry (OTel)</strong> for the hard numbers &mdash; the exact
+      model and token counts emitted on every LLM call, streamed to a local HTTP
+      server.
+    </li>
+    <li>
+      <strong>Gemini CLI hooks</strong> (<code>SessionStart</code> /
+      <code>SessionEnd</code> / <code>AfterToolUse</code>) for lifecycle, tool
+      use, and commits &mdash; plus the <code>cwd</code> exposed in the hook
+      environment, which lets us read the local git remote to identify the repo
+      with zero manual entry.
+    </li>
+  </ul>
+  <p>
+    This is the first architecture I proposed in our early team discussions,
+    while we were still weighing how deterministic our detection could be:
+  </p>
+  <figure>
+    <img
+      src="/projects/ait/inital-diagram.png"
+      alt="Initial proposed architecture diagram from the team's first discussions, sketching how OTel spans and Gemini hooks feed a local receiver that tracks sessions, repos, commits, and tokens."
+    />
+    <figcaption>
+      The initial proposal from our first discussions &mdash; OTel plus Gemini
+      hooks feeding a local receiver, keyed by session.
+    </figcaption>
+  </figure>
+  <p>
+    Sessions are keyed by a unique session id in an in-memory map, so multiple
+    concurrent agent sessions accumulate independently. Issues map to sessions by
+    a user &ldquo;claiming&rdquo; one, and in the design, finished sessions would
+    be persisted to SQLite. (In practice, the MVP we shipped tracked everything
+    live from that in-memory map &mdash; more on that scope shift below.) That
+    firmed up into this fuller picture of the system:
+  </p>
+  <figure>
+    <img
+      src="/projects/ait/rough-architecture.png"
+      alt="Architecture diagram: the user drives an AI coding agent, which reports OTel spans to a local OTLP receiver inside the VS Code extension host; the extension pulls issues from the GitHub API, stores data in local SQLite, and renders a sidebar dashboard."
+    />
+    <figcaption>
+      The system at a glance: the agent reports passively via telemetry; the
+      extension host runs the receiver, talks to GitHub, stores to SQLite, and
+      drives the sidebar UI.
+    </figcaption>
+  </figure>
+
+  {/* ---------------- RESEARCH / ADR ---------------- */}
+  <h2>Research and the key architectural decision</h2>
+  <p>
+    Before writing code, the team ran a real decision process and recorded
+    Architectural Decision Records (ADRs) in MADR format. A few foundational ones
+    shaped everything I built:
+  </p>
+  <ul>
+    <li>
+      <strong>We&rsquo;re a tracker, not a solver.</strong> Rather than mirror
+      tools like Linear that delegate issues to an agent to solve, we chose to
+      strictly track and prep issues. That kept ownership (and blame) with the
+      human, and dropped a huge amount of permission/complexity from scope.
+    </li>
+    <li>
+      <strong>Remove &ldquo;Create&rdquo; from CRUD.</strong> GitHub stays the one
+      source of truth for creating issues; we handle read/update/delete. Less UI,
+      no write-access to the repo, cleaner data integrity.
+    </li>
+    <li>
+      <strong>Ship as a VS Code extension.</strong> It sits in the developer&rsquo;s
+      real workflow, gives us a proper filesystem and SQLite (vs. a web
+      app&rsquo;s <code>localStorage</code>), and direct CLI access for git.
+    </li>
+  </ul>
+  <figure>
+    <img
+      src="/projects/ait/adr-index.png"
+      alt="Index table of Architectural Decision Records, each with an ID, title, and 'Accepted' status — including GitHub Issues as provider, Gemini as LLM provider, VS Code extension platform, SQLite, tracker-not-solver, and telemetry-based agent tracking."
+    />
+    <figcaption>
+      Our ADR index &mdash; every significant technical decision documented with
+      its context, the alternatives we rejected, and why.
+    </figcaption>
+  </figure>
+  <p>
+    The decision that governed my work was <strong>&ldquo;Telemetry + Gemini
+    Hooks based Agent tracking.&rdquo;</strong> We weighed nine options &mdash;
+    probabilistic behavior matching, artifact pre-prompting, a LangFuse-style
+    wrapper, GitHub Agentic Workflows, restricting models with manual pricing, a
+    LiteLLM local proxy, scraping agent logs, VS Code debug logs, and VS Code
+    OpenTelemetry. We chose the combination of <strong>Gemini hooks + Gemini
+    telemetry</strong> because it gives precise, ground-truth data that emerges
+    directly from the user&rsquo;s own machine with minimal setup. The main
+    trade-off we accepted: for the MVP, it ties us to a single provider (Gemini).
+    That decision let us reliably capture, per tracked issue: commits (by agent
+    vs. human), models used, tokens in/out, prompt duration, and the tools the
+    agent invoked.
+  </p>
+
+  {/* ---------------- COMMIT TRACKING ---------------- */}
+  <h2>Detecting commits: two approaches, combined</h2>
+  <p>
+    Commit attribution was the sub-problem where my partner Sahil and I initially
+    diverged &mdash; and where combining our ideas made the design noticeably
+    better. I first explored a <strong>start/end commit</strong> approach: record
+    the <code>HEAD</code> SHA at <code>SessionStart</code> and
+    <code>SessionEnd</code>, then compute every commit in between. I recorded an
+    early exploration of that:
+  </p>
+  <div class="video">
+    <iframe
+      src="https://www.youtube.com/embed/U0jKCAKA9ew"
+      title="Start/end commit tracking exploration"
+      loading="lazy"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen></iframe>
+  </div>
+  <p>
+    Sahil&rsquo;s approach used an <code>AfterToolUse</code> hook to catch commits
+    live, as the agent runs them. We met, compared trade-offs, and made an
+    executive decision to <strong>combine both</strong>:
+  </p>
+  <ul>
+    <li>
+      <strong>AfterToolUse hooks</strong> give live, agent-specific tracking (and,
+      as a bonus, visibility into every other tool the agent runs &mdash; what it
+      read, what it executed) &mdash; but miss human commits.
+    </li>
+    <li>
+      <strong>Start/end commit diffing</strong> catches <em>every</em> commit
+      regardless of author &mdash; but only resolves once the session ends.
+    </li>
+  </ul>
+  <p>
+    So the finalized pipeline is: OTel for tokens and the exact model on each LLM
+    call; hooks for the session lifecycle, tool calls, live agent commits, and the
+    <code>cwd</code>/repo; and a <strong>post-session reconciliation</strong> that
+    diffs start-to-end commits and subtracts the known agent commits to isolate
+    the human ones. Since we were already living in the hook system, AfterToolUse
+    was a natural fit, and it&rsquo;s the most honest representation of the
+    product&rsquo;s purpose &mdash; tracking what the <em>agent</em> did &mdash;
+    while still letting a developer see their own commits after the fact.
+  </p>
+
+  {/* ---------------- ARCHITECTURE / FLOW ---------------- */}
+  <h2>How the pieces fit together</h2>
+  <p>
+    With the decisions locked, we mapped the full runtime flow &mdash; setup,
+    session start, and everything that fires during a session:
+  </p>
+  <figure>
+    <img
+      src="/projects/ait/shared-diagram.png"
+      alt="Two-phase flow diagram. Phase 1 (setup): setup.js writes .gemini config and hooks, starts the HTTP server, claims a pending issue, and starts the receiver. Phase 2 (tracking): each agent action — session start, prompts, output spans, tool use, session end, issue switch — maps to a receiver function such as createSession, onSpanReceived, updateToolCalls, and finalizeSession."
+    />
+    <figcaption>
+      The end-to-end flow, color-coded by responsibility (human work, logic, API,
+      telemetry, UI, agent work).
+    </figcaption>
+  </figure>
+
+  {/* ---------------- DIVIDING THE WORK ---------------- */}
+  <h2>Dividing the work: designing the interface first</h2>
+  <p>
+    Sahil and I split the backend cleanly: I built the <strong>receiver </strong>
+     (the HTTP server that ingests spans and hook events and parses them into our
+    shared shapes), and he built the <strong>session manager</strong> (the state
+    logic those parsed events drive). The thing I&rsquo;m happiest with is that we
+    designed the <em>contract between the two halves before writing either one</em>
+    &mdash; the data shapes and the exact function signatures &mdash; so our code
+    couldn&rsquo;t drift out of sync.
+  </p>
+  <figure>
+    <img
+      src="/projects/ait/work-dist.png"
+      alt="Sequence-style diagram splitting responsibilities: the Outside World fires hooks and spans, Scott (receiver) parses each into typed objects, and hands off to Sahil (session manager) functions like createSession, onSpanReceived/updateTokens, updateToolCalls, claimIssue, and finalizeSession."
+    />
+    <figcaption>
+      The hand-off we agreed on: the receiver (mine) parses raw hooks/spans into
+      typed objects and calls into the session manager (Sahil&rsquo;s).
+    </figcaption>
+  </figure>
+  <p>The shared contract we committed to before implementing:</p>
+  <pre><code>{contractCode}</code></pre>
+
+  {/* ---------------- BUILDING THE RECEIVER ---------------- */}
+  <h2>Building the receiver</h2>
+  <p>
+    I scaffolded the directory at
+    <code>src/back/logic/agent-detection</code> &mdash; <code>agent_receiver.js</code>
+    (the local HTTP server), <code>session_types.js</code> (the interfaces above),
+    and a <code>helpers/</code> folder for OTel parsing, hook-event parsing, git,
+    and cost calculations &mdash; and documented it in a directory README and the
+    project&rsquo;s <code>STRUCTURE.md</code>. We followed the codebase practice of
+    writing JSDoc and unit tests <em>as</em> we implemented, not after.
+  </p>
+  <p>
+    The receiver stands up a local server that catches incoming OTel spans and
+    Gemini hook events (<code>SessionStart</code>/<code>SessionEnd</code> and
+    <code>AfterToolUse</code>), parses both into our unified
+    <code>OTelSpan</code> and <code>ToolInfo</code> shapes, and routes them into
+    the session-manager functions. A big part of getting it right was hardening
+    the edge cases:
+  </p>
+  <ul>
+    <li>
+      Ignore <code>user_prompt </code> spans that arrive with <strong>0 tokens </strong>
+      so they don&rsquo;t pollute token counts.
+    </li>
+    <li>
+      Handle <strong>duplicate <code>SessionEnd</code> hooks</strong> without
+      double-finalizing.
+    </li>
+    <li>
+      Safely drop spans that arrive <strong>late</strong>, after a session has
+      already closed.
+    </li>
+  </ul>
+  <p>
+    Here&rsquo;s the receiver running against a real Gemini session &mdash; a
+    normal prompt, then a prompt that makes the agent use a tool, then a faked
+    <code>AfterToolUse</code> payload with a <code>git commit</code> to exercise
+    the <code>isCommit</code>/<code>commitSha</code> path, then quitting. You can
+    see the <code>ignored_non_token_span</code> and
+    <code>ignored_duplicate_session_end</code> guards firing:
+  </p>
+  <div class="video">
+    <iframe
+      src="https://www.youtube.com/embed/_qYZb3JljJA"
+      title="Receiver implementation test against a real Gemini session"
+      loading="lazy"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen></iframe>
+  </div>
+  <p>
+    A receiver is useless if the agent isn&rsquo;t configured to report to it, so
+    I also wrote an <strong>auto-setup helper </strong>
+    (<code>gemini_settings_helper.js</code>) that creates/updates
+    <code>.gemini/settings.json</code>, installs the hook functions, and enables
+    OTel telemetry &mdash; while carefully preserving any unrelated settings the
+    user already had. When the extension activates, it just calls
+    <code>t2ensureGeminiSettings(cwd)</code> then
+    <code>t2startAgentReceiver()</code>, and tears down with
+    <code>t2stopAgentReceiver()</code> on deactivate.
+  </p>
+  <div class="video">
+    <iframe
+      src="https://www.youtube.com/embed/hea4vlu0oEw"
+      title="Automatic Gemini settings setup helper"
+      loading="lazy"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen></iframe>
+  </div>
+  <p>
+    To validate the numbers weren&rsquo;t just plausible but <em>correct</em>, I
+    wrote integration tests across the full receiver &rarr; session-manager flow
+    and manually cross-checked our accumulated tokens against Gemini CLI&rsquo;s
+    own end-of-session summary. The math matched exactly:
+  </p>
+  <figure>
+    <img
+      src="/projects/ait/token-val.png"
+      alt="Side-by-side terminal output: Gemini CLI's interaction summary reports 23,102 input and 36 output tokens for a session, and the receiver's tracked session object shows the same inputTokens: 23102 and outputTokens: 36 highlighted."
+    />
+    <figcaption>
+      Validation: the tokens my receiver accumulated from OTel spans (right) add
+      up to exactly what Gemini CLI reports at session end (left).
+    </figcaption>
+  </figure>
+  <p>
+    An earlier exploration, before the architecture settled, of just pulling token
+    usage and the specific model out of the agent:
+  </p>
+  <div class="video">
+    <iframe
+      src="https://www.youtube.com/embed/nZvQQgMKHsw"
+      title="Early exploration of token usage and model detection"
+      loading="lazy"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen></iframe>
+  </div>
+
+  {/* ---------------- SESSION MGMT / BUGS ---------------- */}
+  <h2>Session management, and the bugs worth remembering</h2>
+  <p>
+    On the session-manager side, Sahil implemented the live state &mdash;
+    accumulating tokens, tracking active models, and logging commits &mdash; and
+    we untangled a few good bugs together. The nastiest: the
+    <code>session.id</code> in the OTel payload was actually the OTel
+    <em>span&rsquo;s</em> id, while the real Gemini session id had to be pulled
+    from <code>gen_ai.conversation.id</code>. The claim logic also had two modes
+    worth calling out: claiming an issue for a session that doesn&rsquo;t exist yet
+    marks it <em>pending</em> and binds when that session starts; claiming with no
+    session id acts as a <em>wildcard</em> that binds to the next session to open.
+  </p>
+  <p>
+    Later we deliberately <strong>refactored cost out of the session manager</strong>.
+    Rather than silo pricing inside agent-detection, we kept per-model
+    <em> token</em> tracking there (converting the <code>models</code> set into a
+    map keyed by model, so switching models mid-session stays accurate) and left
+    cost calculation to a separate layer &mdash; avoiding data duplication and
+    keeping room for user-defined custom pricing as API prices shift.
+  </p>
+
+  {/* ---------------- INTEGRATION TESTING ---------------- */}
+  <h2>Integration testing: treating the webview as a black box</h2>
+  <p>
+    When we moved to testing the VS Code integration, a real design question came
+    up: how do you verify a &ldquo;ping&rdquo; actually crosses the boundary
+    between the WebView and the extension host? One option was to mock
+    <code>vscode.window.showInformationMessage</code> and call the message handler
+    directly. The other was to inject a small test-harness script into the
+    webview&rsquo;s HTML and fire a <em>real</em>
+    <code>acquireVsCodeApi().postMessage(...)</code>.
+  </p>
+  <p>
+    We chose the second. The first option only tests an isolated handler function
+    and bypasses the webview entirely; the second treats the WebView process as a
+    black box and actually proves the wiring between two independent processes
+    works &mdash; a true integration test. That&rsquo;s the version that gives you
+    confidence the extension is really talking to its UI.
+  </p>
+  <figure>
+    <img
+      src="/projects/ait/cicd.png"
+      alt="CI/CD pipeline flowchart: push to main triggers ESLint; on pass, docs generation and static-site deploy; then three parallel test suites (Jest unit tests, vscode-test extension-host tests, Playwright E2E); if all pass, the extension is packaged into a .vsix."
+    />
+    <figcaption>
+      The CI/CD pipeline the project settled on: lint &rarr; docs/site deploy
+      &rarr; parallel unit / extension-host / E2E tests &rarr; package to
+      <code>.vsix</code>.
+    </figcaption>
+  </figure>
+
+  {/* ---------------- DEMOS ---------------- */}
+  <h2>Shipping demos for feedback</h2>
+  <p>
+    Once the core detection worked, I pushed to get something <em>visible</em> in
+    front of our stakeholder &mdash; the team had hit some hold-ups, and
+    I strongly believed a rough, watchable demo would unblock feedback faster than
+    waiting for a polished build. So I wired a quick, deliberately messy
+    end-to-end slice: click an issue, wait for a session to start, and watch real
+    tokens and models stream in and reconcile at session end.
+  </p>
+  <p>This was me pushing a product-first mindset on the team &mdash; in my own words to the group at the time:</p>
+  <blockquote>
+    &ldquo;I felt a bit concerned about how we might not have some product, even
+    if super minimal or rough, to show. Even if we&rsquo;re graded on the
+    &lsquo;process,&rsquo; it doesn&rsquo;t feel great to have literally nothing
+    to show&hellip; The idea from class &mdash; that releasing a flawed,
+    half-baked product that&rsquo;s <em>fixable</em> beats a product that never
+    ships &mdash; is exactly what these demos address&hellip; Let&rsquo;s
+    remember this is OUR product. Let&rsquo;s leave this class with no regrets
+    and finish the strongest we can.&rdquo;
+  </blockquote>
+  <div class="video">
+    <iframe
+      src="https://www.youtube.com/embed/cpHLzK5QXP4"
+      title="First rough end-to-end demo for stakeholder feedback"
+      loading="lazy"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen></iframe>
+  </div>
+  <figure>
+    <img
+      src="/projects/ait/model-use.png"
+      alt="Terminal showing raw OTel spans (llm_call spans with models gemini-2.5-flash-lite and gemini-3-flash-preview and their token counts) next to Gemini CLI's model-usage summary table."
+    />
+    <figcaption>
+      A quirk I found here: with model set to <em>Auto</em>, Gemini CLI resolves
+      aliases internally, so its summary can name different models than the raw
+      OTel spans. Selecting a model manually makes them line up &mdash; the raw
+      telemetry is the ground truth.
+    </figcaption>
+  </figure>
+  <p>
+    Worth a footnote: this mismatch later <strong>resolved itself after a Gemini
+    CLI update</strong> &mdash; the models now line up with the telemetry even on
+    Auto &mdash; which suggests the CLI&rsquo;s end-of-session summary had simply
+    been reporting resolved aliases that the OTel payload hadn&rsquo;t caught up
+    to yet. Either way, keying off the raw telemetry was the right call.
+  </p>
+  <figure>
+    <img
+      src="/projects/ait/model-match.png"
+      alt="IssueSight sidebar and terminal after a Gemini CLI update: the sidebar's model list (gemini-3.1-flash-lite, gemini-3-flash-preview) now matches Gemini CLI's own end-of-session model-usage summary exactly."
+    />
+    <figcaption>
+      After a later Gemini CLI update, the detected models match the CLI&rsquo;s
+      own summary even on Auto &mdash; the earlier discrepancy was on the
+      telemetry side, not ours.
+    </figcaption>
+  </figure>
+  <p>
+    This first cut linked issues to sessions by a manual &ldquo;claim,&rdquo; and
+    intentionally skipped branch/commit-based issue detection &mdash; the goal was
+    just to make the core idea (<em>a session works on an issue; AIT detects the
+    model and tracks the tokens</em>) something a non-engineer could watch and
+    immediately get. It embodied the agile principle I kept coming back to: a
+    flawed-but-shippable release beats a perfect one that never ships.
+  </p>
+  <p>
+    For the final presentation I took the demo further &mdash; replacing the
+    manual claim with <strong>automatic branch detection</strong> and adding
+    <strong> multi-session / multi-issue</strong> capability. A session reads the
+    current git branch (named <code>issue-#</code>), parses the number, and links
+    the matching issue:
+  </p>
+  <figure>
+    <img
+      src="/projects/ait/branch-detection.png"
+      alt="Debug output showing the receiver capturing a session whose branch field reads 'active(feat/cohesive-logic-and-ui)', circled in red, alongside a live Gemini CLI session in that branch."
+    />
+    <figcaption>
+      Automatic branch detection: the session picks up the active git branch and
+      uses it to attribute work to the right issue &mdash; no manual claim needed.
+    </figcaption>
+  </figure>
+  <figure>
+    <img
+      src="/projects/ait/token-track.png"
+      alt="IssueSight sidebar UI: an issue claimed for the active agent session, showing model list, token usage (in/out/total), estimated cost, request time, and a live model-usage table matching the terminal output."
+    />
+    <figcaption>
+      The final demo UI: branch/issue detection, live token tracking with cost,
+      model detection, request duration, and commit tracking, all tied to the
+      claimed issue.
+    </figcaption>
+  </figure>
+  <div class="video">
+    <iframe
+      src="https://www.youtube.com/embed/CGrZW1l389Y"
+      title="Final IssueSight demo: branch detection, token/cost tracking, multi-session"
+      loading="lazy"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen></iframe>
+  </div>
+  <p>
+    A few things here are deliberate shortcuts for the presentation &mdash; branch
+    linking uses a local <code>issue-#</code> naming convention rather than
+    GitHub&rsquo;s native branch-issue links, and cost is hard-coded &mdash; but it
+    showcases the full vision: branch/issue detection, token tracking with cost,
+    model detection, request duration, commit tracking, multi-session workflows,
+    and the UI. To hand this cleanly to a teammate to build on, I kept the demo
+    logic isolated in its own branch and wrote up every file I touched and the
+    functions (<code>t2getAllActiveSessions()</code>,
+    <code>t2getActiveSession(sessionId)</code>) they&rsquo;d need to pull session
+    data.
+  </p>
+
+  {/* ---------------- SCOPE / HONEST MVP ---------------- */}
+  <h2>An honest note on scope</h2>
+  <p>
+    Our original vision had more moving parts than we ultimately shipped &mdash;
+    persisting sessions to a SQLite database being the clearest example. Over the
+    ten weeks, with issues slipping and some communication friction across an
+    eleven-person team, we naturally converged on what we could realistically
+    deliver: a <strong>RAM-first MVP</strong> that tracked everything live from
+    the in-memory session map, which was enough to demonstrate the core value and
+    get real feedback. The idea of tracking live from RAM before writing to SQLite
+    actually surfaced early &mdash; partly to avoid the performance cost of hitting
+    the database on every LLM call &mdash; and it became the pragmatic path once we
+    took an honest look at our timeline.
+  </p>
+  <p>
+    So the MVP itself moved throughout the project. This is the point of building iteratively:
+    scope should bend to reality, and a working slice you can actually show beats an ambitious
+    plan that never ships. The database, native GitHub branch-issue linking, and precise cost
+    modeling all remain clear post-MVP next steps rather than things I&rsquo;d claim
+    we finished.
+  </p>
+
+  {/* ---------------- REFLECTION ---------------- */}
+  <h2>What I took away</h2>
+  <ul>
+    <li>
+      <strong>Design the contract before the code.</strong> Agreeing on the
+      <code>OTelSpan</code>/<code>SessionContext</code> shapes and the
+      <code>SessionManager</code> signatures up front let two people build two
+      halves of a system in parallel without them drifting apart.
+    </li>
+    <li>
+      <strong>Ground truth beats self-report.</strong> Reaching for OTel and hooks
+      instead of asking the model to describe itself is what made the numbers
+      trustworthy &mdash; and validating them against the CLI&rsquo;s own summary
+      proved it.
+    </li>
+    <li>
+      <strong>Ship something watchable.</strong> A rough demo unblocked stakeholder
+      feedback faster than a polished build would have &mdash; and repeatedly
+      pulled the team&rsquo;s vision back into focus.
+    </li>
+  </ul>
+</ProjectLayout>
