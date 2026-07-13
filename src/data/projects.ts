@@ -54,6 +54,13 @@ export const projects: Project[] = [
     url: "https://phamhscott.github.io/ghibligeneration/",
   },
   {
+    title: "The End of Silence — Speculative Soundscape",
+    description:
+      "A speculative-sound project imagining a future where technology has drowned out nature and silence itself. I led it end to end: research, proposal, a graphic score, and producing the final multi-tracked audio piece. From a UCSD course on speculating about the future through sound.",
+    tags: ["Sound Design", "Audio Production", "Multi-track Editing", "Speculative Design", "Project Lead"],
+    caseStudy: "/projects/sound-speculation",
+  },
+  {
     title: "College Earnings Data Analysis",
     description:
       "A data analysis of how a college's selectivity and program mix relate to graduates' earnings, across 2,594 institution–major pairs from U.S. College Scorecard data. Key finding: STEM majors out-earn non-STEM at every stage, and the gap widens over time.",

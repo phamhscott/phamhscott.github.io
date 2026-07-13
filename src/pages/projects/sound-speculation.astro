@@ -1,0 +1,187 @@
+---
+// sound-speculation.astro — case study for a speculative-sound project from
+// the course "Listening to the Future: Speculating Through Soundscapes and
+// Sonification." Lives at "/projects/sound-speculation/".
+//
+// Assets live in  public/projects/sound-speculation/  :
+//   sound-speculation.mp3  — the final ~3:45 soundscape piece
+//   graphic-score.png      — the graphic score / production blueprint
+//   group-proposal.pdf     — the written proposal + annotated bibliography
+import ProjectLayout from "../../layouts/ProjectLayout.astro";
+---
+
+<ProjectLayout
+  title="The End of Silence"
+  tagline="A speculative soundscape imagining a future 30–40 years out where technology has drowned out nature — and silence itself. Built for the course 'Listening to the Future: Speculating Through Soundscapes and Sonification.' I led the project: research, proposal, and producing the final audio piece."
+  status="Course project — lead"
+  tags={[
+    "Sound Design",
+    "Audio Production",
+    "Multi-track Editing",
+    "Speculative Design",
+    "Research",
+    "Project Lead",
+  ]}
+>
+  {/* ---------------- OVERVIEW ---------------- */}
+  <h2>Overview</h2>
+  <p>
+    This was a 5+ week project for a UC San Diego course,
+    <em> Listening to the Future: Speculating Through Soundscapes and
+    Sonification</em>. The brief: based on real research, argue for a
+    plausible future 30&ndash;40 years from now that can be understood
+    <em>through sound</em> &mdash; utopian, alarmist, or somewhere in
+    between.
+  </p>
+  <p>
+    My group took the <strong>alarmist</strong> position, and our thesis was a
+    single unsettling idea: <strong>the end of silence.</strong> We imagined a
+    future where the unchecked growth of technology and music has saturated the
+    world so completely that nature&rsquo;s sounds &mdash; and its silence
+    &mdash; are lost. In trying to escape our own anxiety and boredom, we reach
+    for technology that comforts and entertains us, but ultimately controls us,
+    until we forget the natural world entirely.
+  </p>
+  <p>
+    <strong>I was the project lead.</strong> I steered the concept, ran and
+    synthesized the research, drafted the proposal, designed the piece&rsquo;s
+    structure, and did the actual audio editing and production of the final
+    soundscape.
+  </p>
+
+  {/* ---------------- LISTEN ---------------- */}
+  <h2>Listen</h2>
+  <p>
+    The finished piece is a ~3:45 multi-tracked soundscape &mdash; a day in the
+    life of an introverted man who uses music as a drug to manage his anxiety,
+    in a world where silence no longer exists. Best with headphones.
+  </p>
+  <audio controls preload="none" src="/projects/sound-speculation/sound-speculation.mp3"
+  ></audio>
+
+  {/* ---------------- THE GRAPHIC SCORE ---------------- */}
+  <h2>The graphic score</h2>
+  <p>
+    Before touching the audio, I mapped the entire piece as a
+    <strong> graphic score</strong> &mdash; a visual blueprint laying out, across
+    the timeline, every section&rsquo;s narrative, the specific sounds used, a
+    graphic notation of the sound itself, and the editing effects that would
+    carry each moment. It doubled as the production plan I edited against and as
+    the team&rsquo;s shared reference.
+  </p>
+  <figure>
+    <img
+      src="/projects/sound-speculation/graphic-score.png"
+      alt="A wide graphic score for the soundscape. A time axis runs from 0 to 3:45, split into two acts — 'Home' (dream about nature, using music as a drug, starting day) and 'Outside' (entering outside, drive to work, work → end). Rows below map, for each section, a description, the specific sounds used, a graphic notation of the sound, and the editing effects (reverb, distortion, looping, amplification, overlapping clips)."
+    />
+    <figcaption>
+      The graphic score &mdash; two acts (Home &rarr; Outside), with sounds,
+      notation, and editing effects mapped across the full timeline.
+    </figcaption>
+  </figure>
+  <p>
+    The structure follows the character across a single morning. In the{" "}
+    <strong>Home</strong> act he dreams of nature (a past when it still
+    existed), wakes to crippling anxiety, and reaches for his headphones &mdash;
+    music as a drug &mdash; looping the same song over and over into a trance.
+    In the <strong>Outside</strong> act he opens his door into a wall of
+    overlapping media and overstimulation, drives to a volunteer shift at a
+    concert, and the piece builds to a dystopian climax: birds falling from a
+    sky that has no room left for them, and a fading voice saying
+    <em> &ldquo;I miss there being nature.&rdquo;</em>
+  </p>
+
+  {/* ---------------- TECHNICAL CRAFT ---------------- */}
+  <h2>Producing the piece</h2>
+  <p>
+    The editing is where the concept had to actually become <em>audible</em>.
+    A few of the production choices I leaned on:
+  </p>
+  <ul>
+    <li>
+      <strong>Headphones on / off as a POV switch.</strong> Reverb, muffling,
+      and drawing sound out let me flip between the character&rsquo;s calm
+      inner mind (music on) and the harsh outside world &mdash; the two spaces
+      the whole story turns on.
+    </li>
+    <li>
+      <strong>Looping as addiction.</strong> The same track repeats, and
+      repeats, and repeats &mdash; the edit itself performs the overreliance
+      the piece is arguing about.
+    </li>
+    <li>
+      <strong>Overlapping clips = no more silence.</strong> Layering dense,
+      overlapping audio &mdash; radios, notifications, TikToks, crowd noise
+      &mdash; so that in the Outside act there is never a moment of true
+      quiet, which is the thesis made literal.
+    </li>
+    <li>
+      <strong>Distortion and rising amplitude for the climax.</strong>{" "}
+      Gradual distortion, a pounding heartbeat, and volume creeping up on a
+      button-press build the overstimulation toward the ending.
+    </li>
+  </ul>
+  <p>
+    The course also framed sound through Schafer&rsquo;s
+    <em> Apollonian vs. Dionysian</em> lens &mdash; ordered, designed sound
+    versus chaotic, overwhelming sound &mdash; which is exactly the tension the
+    piece rides from the quiet dream at the start to the chaos at the end.
+  </p>
+
+  {/* ---------------- RESEARCH ---------------- */}
+  <h2>The research behind it</h2>
+  <p>
+    The speculation is grounded in real sources. As lead I pulled together
+    three research threads from the team and tied them to one argument &mdash;
+    that the growth of technology reshapes both people and the environment:
+  </p>
+  <ul>
+    <li>
+      <strong>Music, anxiety, and dependence.</strong> Research on music
+      reducing anxiety and pain (and on performance anxiety) &mdash; extended
+      to a future where that comfort curdles into overreliance, replacing human
+      support.
+    </li>
+    <li>
+      <strong>Ecomusicology and the environment.</strong> Work on music&rsquo;s
+      material impact and ecological cost &mdash; the idea that silence is
+      itself musical, and that the environment is being drowned out.
+    </li>
+    <li>
+      <strong>Modernizing tradition.</strong> LIV Golf bolting concerts and
+      spectacle onto a traditional sport &mdash; a small, real example of
+      technology and entertainment overwriting older, quieter practices.
+    </li>
+  </ul>
+  <p>
+    The full write-up &mdash; proposal, guiding research questions, speculative
+    trajectory, and the annotated bibliography &mdash; is here:
+  </p>
+  <p>
+    <a href="/projects/sound-speculation/group-proposal.pdf" target="_blank" rel="noopener">
+      Read the proposal &amp; annotated bibliography (PDF) ↗
+    </a>
+  </p>
+
+  {/* ---------------- REFLECTION ---------------- */}
+  <h2>What I took away</h2>
+  <p>
+    This one sits outside my usual engineering work, and that&rsquo;s exactly
+    why I like having it here. Leading it meant turning an abstract argument
+    into a concrete artifact &mdash; holding a thesis steady across research,
+    a written proposal, a visual score, and finally an edited piece of audio
+    where every effect had to <em>mean</em> something. It&rsquo;s the same
+    muscle as shipping software: decide what you&rsquo;re saying, design how the
+    pieces fit, and make sure the final thing actually lands with whoever
+    experiences it.
+  </p>
+</ProjectLayout>
+
+<style>
+  /* The audio player is the centerpiece of this page, so let it span the
+     full content width like the figures do. */
+  audio {
+    width: 100%;
+    margin: 0 0 var(--space-sm);
+  }
+</style>
