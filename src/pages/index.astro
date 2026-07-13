@@ -6,6 +6,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import ProjectCard from "../components/ProjectCard.astro";
 import { projects, inProgress } from "../data/projects";
 import { coursework } from "../data/coursework";
+import { certifications } from "../data/certifications";
 
 // ---- EDIT YOUR CONTACT LINKS HERE ----
 const links = {
@@ -82,6 +83,36 @@ const links = {
       }
     </div>
   </section>
+
+  {/* ---------------- CERTIFICATIONS ---------------- */}
+  {/* Compact list, styled like Coursework. Hides itself if the
+      `certifications` list in data/certifications.ts is empty. */}
+  {
+    certifications.length > 0 && (
+      <section class="section">
+        <h2>Certifications</h2>
+        <div class="cert-list">
+          {certifications.map((cert) => (
+            <article class="cert">
+              <div class="cert-head">
+                <span class="cert-name">{cert.name}</span>
+                {cert.credential && (
+                  // Opens in a new tab so the portfolio stays put — the
+                  // credential is a standalone PDF/verification artifact.
+                  <a class="cert-link" href={cert.credential} target="_blank" rel="noopener">
+                    View credential ↗
+                  </a>
+                )}
+              </div>
+              <p class="cert-meta">
+                {cert.issuer} · {cert.date}
+              </p>
+            </article>
+          ))}
+        </div>
+      </section>
+    )
+  }
 
   {/* ---------------- CONTACT ---------------- */}
   <section class="section">
@@ -179,5 +210,43 @@ const links = {
     border-radius: 999px;
     padding: 0.15rem 0.6rem;
     color: var(--text-muted);
+  }
+
+  /* ---- Certifications section ---- */
+  /* Rows follow the same divider style as Coursework and the project rows. */
+  .cert-list {
+    display: flex;
+    flex-direction: column;
+  }
+  .cert {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    padding-block: var(--space-md);
+    border-bottom: 1px solid var(--border);
+  }
+  /* Name on the left, "View credential" link on the right — same idea as the
+     project rows, so the links line up down the page. */
+  .cert-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+  .cert-name {
+    font-weight: 700;
+    font-size: 1.05rem;
+  }
+  .cert-link {
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .cert-meta {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
   }
 </style>
