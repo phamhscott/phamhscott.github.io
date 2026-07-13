@@ -1,8 +1,15 @@
 // projects.ts — the DATA for your portfolio, kept separate from the markup.
-// The homepage imports this list and renders one <ProjectCard> per item.
+// The homepage imports these lists and renders one <ProjectCard> per item.
 //
-// >> TO ADD A PROJECT: copy a { ... } block below and edit its fields. <<
+// Projects live in TWO lists so the homepage can show them in two groups:
+//   • `projects`   → "Selected work"      (your finished/showable work)
+//   • `inProgress` → "Currently building" (work you're actively on)
+//
+// >> ORDER MATTERS: within each list, the FIRST item shows at the top. Put
+//    your strongest work first — that's how the page highlights it. <<
+// >> TO ADD A PROJECT: copy a { ... } block into the right list and edit it. <<
 // >> TO REMOVE ONE: delete its block. The page updates automatically. <<
+// >> When a WIP project ships, move its block from `inProgress` to `projects`. <<
 
 // This `interface` describes the shape of one project. It's how your editor
 // knows which fields exist and warns you about typos.
@@ -16,16 +23,8 @@ export interface Project {
   caseStudy?: string; // optional link to a detail page, e.g. "/projects/ait"
 }
 
+// ---- SELECTED WORK ----  (ordered best-first; top of the list = top of page)
 export const projects: Project[] = [
-  {
-    title: "Social Media Discovery Hub",
-    // ↓ Tweak this to your own words — what it does and why it's interesting.
-    description:
-      "A social media library and discovery hub — save, organize, and surface content across platforms in one place.",
-    tags: ["Next.js", "FastAPI", "SQLite"], // add the tech you're using, e.g. "React", "Node"
-    status: "In progress",
-    // Repo is private for now — add `repo: "..."` here once it's public.
-  },
   {
     title: "IssueSight",
     description:
@@ -35,6 +34,16 @@ export const projects: Project[] = [
     // Private repo — the on-site case study stands in for a Code link.
     caseStudy: "/projects/ait",
     url: "https://cse110-sp26-group02.github.io/cse110-sp26-project-site/",
+  },
+  {
+    title: "MatchRoom",
+    description:
+      "Every match becomes a game your group chat plays together — a social second-screen app for live sports, solo-built for the Hacks United v7 hackathon. An AI producer watches a live match feed and generates micro-predictions in real time, synced across everyone in the room via Supabase Realtime.",
+    tags: ["Next.js", "TypeScript", "Supabase Realtime", "Anthropic API", "Zod", "Tailwind"],
+    status: "Hackathon project",
+    caseStudy: "/projects/matchroom",
+    url: "https://matchroom-ten.vercel.app/",
+    repo: "https://github.com/phamhscott/matchroom",
   },
   {
     title: "Studio Ghibli Music Generation",
@@ -51,5 +60,18 @@ export const projects: Project[] = [
     tags: ["Python", "pandas", "Jupyter", "scikit-learn", "Plotly"],
     repo: "https://github.com/phamhscott/College-Earnings-Data-Analysis",
     url: "https://phamhscott.github.io/College-Earnings-Data-Analysis/",
-  }
+  },
+];
+
+// ---- CURRENTLY BUILDING ----  (work in progress; shown in its own group below)
+export const inProgress: Project[] = [
+  {
+    title: "Social Media Discovery Hub",
+    // ↓ Tweak this to your own words — what it does and why it's interesting.
+    description:
+      "A social media library and discovery hub — save, organize, and surface content across platforms in one place.",
+    tags: ["Next.js", "FastAPI", "SQLite"], // add the tech you're using, e.g. "React", "Node"
+    status: "In progress",
+    // Repo is private for now — add `repo: "..."` here once it's public.
+  },
 ];

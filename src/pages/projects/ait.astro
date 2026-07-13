@@ -96,8 +96,8 @@ export interface SessionManager {
   <h2>The problem: measuring an agent deterministically</h2>
   <p>
     The hard question wasn&rsquo;t the UI &mdash; it was detection. When a
-    developer points an AI coding agent at a repository, how do you reliably know
-    <em> which repo</em> and <em>which issue</em> it&rsquo;s working on, and how do
+    developer points an AI coding agent at a repository, how do you reliably know{" "}
+    <em>which repo</em> and <em>which issue</em> it&rsquo;s working on, and how do
     you capture <em>exactly</em> the model and token usage of every call without
     trusting the model to self-report? Early on, the whole sub-team&rsquo;s
     concern was <strong>determinism</strong>: we wanted ground-truth data, not
@@ -212,7 +212,7 @@ export interface SessionManager {
     Commit attribution was the sub-problem where my partner Sahil and I initially
     diverged &mdash; and where combining our ideas made the design noticeably
     better. I first explored a <strong>start/end commit</strong> approach: record
-    the <code>HEAD</code> SHA at <code>SessionStart</code> and
+    the <code>HEAD</code> SHA at <code>SessionStart</code> and{" "}
     <code>SessionEnd</code>, then compute every commit in between. I recorded an
     early exploration of that:
   </p>
@@ -242,7 +242,7 @@ export interface SessionManager {
   </ul>
   <p>
     So the finalized pipeline is: OTel for tokens and the exact model on each LLM
-    call; hooks for the session lifecycle, tool calls, live agent commits, and the
+    call; hooks for the session lifecycle, tool calls, live agent commits, and the{" "}
     <code>cwd</code>/repo; and a <strong>post-session reconciliation</strong> that
     diffs start-to-end commits and subtracts the known agent commits to isolate
     the human ones. Since we were already living in the hook system, AfterToolUse
@@ -275,7 +275,7 @@ export interface SessionManager {
      (the HTTP server that ingests spans and hook events and parses them into our
     shared shapes), and he built the <strong>session manager</strong> (the state
     logic those parsed events drive). The thing I&rsquo;m happiest with is that we
-    designed the <em>contract between the two halves before writing either one</em>
+    designed the <em>contract between the two halves before writing either one</em>{" "}
     &mdash; the data shapes and the exact function signatures &mdash; so our code
     couldn&rsquo;t drift out of sync.
   </p>
@@ -295,8 +295,8 @@ export interface SessionManager {
   {/* ---------------- BUILDING THE RECEIVER ---------------- */}
   <h2>Building the receiver</h2>
   <p>
-    I scaffolded the directory at
-    <code>src/back/logic/agent-detection</code> &mdash; <code>agent_receiver.js</code>
+    I scaffolded the directory at{" "}
+    <code>src/back/logic/agent-detection</code> &mdash; <code>agent_receiver.js</code>{" "}
     (the local HTTP server), <code>session_types.js</code> (the interfaces above),
     and a <code>helpers/</code> folder for OTel parsing, hook-event parsing, git,
     and cost calculations &mdash; and documented it in a directory README and the
@@ -305,8 +305,8 @@ export interface SessionManager {
   </p>
   <p>
     The receiver stands up a local server that catches incoming OTel spans and
-    Gemini hook events (<code>SessionStart</code>/<code>SessionEnd</code> and
-    <code>AfterToolUse</code>), parses both into our unified
+    Gemini hook events (<code>SessionStart</code>/<code>SessionEnd</code> and{" "}
+    <code>AfterToolUse</code>), parses both into our unified{" "}
     <code>OTelSpan</code> and <code>ToolInfo</code> shapes, and routes them into
     the session-manager functions. A big part of getting it right was hardening
     the edge cases:
@@ -327,10 +327,10 @@ export interface SessionManager {
   </ul>
   <p>
     Here&rsquo;s the receiver running against a real Gemini session &mdash; a
-    normal prompt, then a prompt that makes the agent use a tool, then a faked
+    normal prompt, then a prompt that makes the agent use a tool, then a faked{" "}
     <code>AfterToolUse</code> payload with a <code>git commit</code> to exercise
     the <code>isCommit</code>/<code>commitSha</code> path, then quitting. You can
-    see the <code>ignored_non_token_span</code> and
+    see the <code>ignored_non_token_span</code> and{" "}
     <code>ignored_duplicate_session_end</code> guards firing:
   </p>
   <div class="video">
@@ -344,12 +344,12 @@ export interface SessionManager {
   <p>
     A receiver is useless if the agent isn&rsquo;t configured to report to it, so
     I also wrote an <strong>auto-setup helper </strong>
-    (<code>gemini_settings_helper.js</code>) that creates/updates
+    (<code>gemini_settings_helper.js</code>) that creates/updates{" "}
     <code>.gemini/settings.json</code>, installs the hook functions, and enables
     OTel telemetry &mdash; while carefully preserving any unrelated settings the
-    user already had. When the extension activates, it just calls
-    <code>t2ensureGeminiSettings(cwd)</code> then
-    <code>t2startAgentReceiver()</code>, and tears down with
+    user already had. When the extension activates, it just calls{" "}
+    <code>t2ensureGeminiSettings(cwd)</code> then{" "}
+    <code>t2startAgentReceiver()</code>, and tears down with{" "}
     <code>t2stopAgentReceiver()</code> on deactivate.
   </p>
   <div class="video">
@@ -394,8 +394,8 @@ export interface SessionManager {
   <p>
     On the session-manager side, Sahil implemented the live state &mdash;
     accumulating tokens, tracking active models, and logging commits &mdash; and
-    we untangled a few good bugs together. The nastiest: the
-    <code>session.id</code> in the OTel payload was actually the OTel
+    we untangled a few good bugs together. The nastiest: the{" "}
+    <code>session.id</code> in the OTel payload was actually the OTel{" "}
     <em>span&rsquo;s</em> id, while the real Gemini session id had to be pulled
     from <code>gen_ai.conversation.id</code>. The claim logic also had two modes
     worth calling out: claiming an issue for a session that doesn&rsquo;t exist yet
@@ -404,8 +404,8 @@ export interface SessionManager {
   </p>
   <p>
     Later we deliberately <strong>refactored cost out of the session manager</strong>.
-    Rather than silo pricing inside agent-detection, we kept per-model
-    <em> token</em> tracking there (converting the <code>models</code> set into a
+    Rather than silo pricing inside agent-detection, we kept per-model{" "}
+    <em>token</em> tracking there (converting the <code>models</code> set into a
     map keyed by model, so switching models mid-session stays accurate) and left
     cost calculation to a separate layer &mdash; avoiding data duplication and
     keeping room for user-defined custom pricing as API prices shift.
@@ -416,10 +416,10 @@ export interface SessionManager {
   <p>
     When we moved to testing the VS Code integration, a real design question came
     up: how do you verify a &ldquo;ping&rdquo; actually crosses the boundary
-    between the WebView and the extension host? One option was to mock
+    between the WebView and the extension host? One option was to mock{" "}
     <code>vscode.window.showInformationMessage</code> and call the message handler
     directly. The other was to inject a small test-harness script into the
-    webview&rsquo;s HTML and fire a <em>real</em>
+    webview&rsquo;s HTML and fire a <em>real</em>{" "}
     <code>acquireVsCodeApi().postMessage(...)</code>.
   </p>
   <p>
@@ -436,7 +436,7 @@ export interface SessionManager {
     />
     <figcaption>
       The CI/CD pipeline the project settled on: lint &rarr; docs/site deploy
-      &rarr; parallel unit / extension-host / E2E tests &rarr; package to
+      &rarr; parallel unit / extension-host / E2E tests &rarr; package to{" "}
       <code>.vsix</code>.
     </figcaption>
   </figure>
@@ -510,8 +510,8 @@ export interface SessionManager {
   </p>
   <p>
     For the final presentation I took the demo further &mdash; replacing the
-    manual claim with <strong>automatic branch detection</strong> and adding
-    <strong> multi-session / multi-issue</strong> capability. A session reads the
+    manual claim with <strong>automatic branch detection</strong> and adding{" "}
+    <strong>multi-session / multi-issue</strong> capability. A session reads the
     current git branch (named <code>issue-#</code>), parses the number, and links
     the matching issue:
   </p>
@@ -552,7 +552,7 @@ export interface SessionManager {
     model detection, request duration, commit tracking, multi-session workflows,
     and the UI. To hand this cleanly to a teammate to build on, I kept the demo
     logic isolated in its own branch and wrote up every file I touched and the
-    functions (<code>t2getAllActiveSessions()</code>,
+    functions (<code>t2getAllActiveSessions()</code>,{" "}
     <code>t2getActiveSession(sessionId)</code>) they&rsquo;d need to pull session
     data.
   </p>
@@ -583,8 +583,8 @@ export interface SessionManager {
   <h2>What I took away</h2>
   <ul>
     <li>
-      <strong>Design the contract before the code.</strong> Agreeing on the
-      <code>OTelSpan</code>/<code>SessionContext</code> shapes and the
+      <strong>Design the contract before the code.</strong> Agreeing on the{" "}
+      <code>OTelSpan</code>/<code>SessionContext</code> shapes and the{" "}
       <code>SessionManager</code> signatures up front let two people build two
       halves of a system in parallel without them drifting apart.
     </li>

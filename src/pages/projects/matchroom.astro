@@ -1,0 +1,359 @@
+---
+// matchroom.astro — the case-study page for MatchRoom, a solo Hacks United v7
+// hackathon submission. Lives at "/projects/matchroom/". Uses ProjectLayout.
+//
+// Images live in  public/projects/matchroom/  and are referenced as
+// "/projects/matchroom/<file>". The demo video is an unlisted-style YouTube
+// embed (see docs/DEVPOST.md and README.md in the MatchRoom repo for source).
+import ProjectLayout from "../../layouts/ProjectLayout.astro";
+---
+
+<ProjectLayout
+  title="MatchRoom"
+  tagline="Every match becomes a game your group chat plays together — live AI-generated micro-predictions on real match feeds, synchronized across everyone in the room. A solo Hacks United v7 hackathon build."
+  status="Hackathon project — solo"
+  tags={[
+    "Next.js",
+    "TypeScript",
+    "Supabase Realtime",
+    "Anthropic API",
+    "Zod",
+    "Tailwind",
+  ]}
+  url="https://matchroom-ten.vercel.app/"
+  repo="https://github.com/phamhscott/matchroom"
+>
+  {/* ---------------- OVERVIEW ---------------- */}
+  <h2>Overview</h2>
+  <p>
+    MatchRoom is a social second-screen app for live sports, built solo over a
+    hackathon weekend for <strong>Hacks United v7</strong>. You join a room
+    with friends, pick a side, and react as the game unfolds. An AI
+    &ldquo;producer&rdquo; watches the live match feed and invents
+    micro-predictions at tense moments &mdash; <em>&ldquo;Mbapp&eacute; steps
+    up. Does he bury this penalty?&rdquo;</em> &mdash; with a countdown to lock
+    in your pick. Live chat, faction support, points, streaks, receipt
+    battles, and room leaderboards turn the broadcast into a shared
+    competition, synchronized to the same clock across every browser in the
+    room.
+  </p>
+  <figure>
+    <img
+      src="/projects/matchroom/banner.svg"
+      alt="MatchRoom banner: 'Watch together. Compete together.'"
+    />
+  </figure>
+
+  {/* ---------------- WHY ---------------- */}
+  <h2>Why I built it</h2>
+  <p>
+    Not everyone who cares about a match can be in the stadium, at a watch
+    party, or even in the same city as the friends they&rsquo;d normally watch
+    with. But they should still get to <em>feel</em> like part of the crowd
+    &mdash; the noise, the tension, the shared willing-it-forward &mdash; not
+    just watch the same score tick over on a screen somewhere else. That gap
+    is what I built MatchRoom to close: a room a scattered group of
+    supporters can share that feels less like a livestream and more like
+    standing in the stands together.
+  </p>
+  <p>
+    The seed of it was smaller and more familiar: every big match, my group
+    chat turns into chaos. Someone types &ldquo;he&rsquo;s going to
+    miss&rdquo; and the text lands after the ball is already in the net. The
+    energy is real, but it&rsquo;s disconnected from the game &mdash; a
+    message thread can&rsquo;t capture what it feels like to stand among
+    supporters who are celebrating, arguing, and willing their side forward.
+    I wanted to build the room <em>around</em> the match instead of next to
+    it.
+  </p>
+  <p>
+    So the whole product is built for the passionate-supporter feeling first:
+    you pick a side the moment you walk in, not a neutral prediction-market
+    stance but a <strong>faction</strong> you&rsquo;re rooting for. Every
+    mechanic &mdash; the countdown polls, the reactions, the streaks, the
+    leaderboard &mdash; exists to give that rooting interest somewhere to go.
+    Calling the next moment before it happens, celebrating a correct pick
+    with your faction, needling the other side in chat &mdash; that&rsquo;s
+    fandom, gamified, not a betting slip. Synchronized to the match clock,
+    with your friends, wherever they physically are, is what actually
+    delivers the &ldquo;together&rdquo; part.
+  </p>
+  <p>
+    And I wanted the AI part to be genuinely load-bearing in service of that,
+    not a chatbot bolted on: an AI{" "}
+    <em>producer</em> that watches the event feed and invents the moments a
+    room gets to react to on the fly, and an AI <em>referee</em> that turns
+    dropped news links into competitive currency for the debate rooms, so
+    supporters who are more into the discourse than a live match still have a
+    faction to fight for.
+  </p>
+
+  {/* ---------------- PRODUCT TOUR ---------------- */}
+  <h2>Product tour</h2>
+  <p>
+    Start from a live fixture, browse rooms by sport, or create a debate
+    around the story your group is already talking about.
+  </p>
+  <figure>
+    <img
+      src="/projects/matchroom/home-page.png"
+      alt="MatchRoom home page with a live fixture, room guide, sport filters, and custom room creation"
+    />
+    <figcaption>The home page &mdash; room guide and entry point.</figcaption>
+  </figure>
+  <p>
+    The producer opens time-limited polls from the match feed. Pick an
+    outcome, commit conviction, and watch the event stream settle the result.
+  </p>
+  <figure>
+    <img
+      src="/projects/matchroom/live-poll.png"
+      alt="A live MatchRoom prediction poll with countdown, conviction controls, match feed, and faction leaderboard"
+    />
+    <figcaption>
+      A live prediction card &mdash; countdown, conviction, and the faction
+      leaderboard.
+    </figcaption>
+  </figure>
+  <p>
+    Player profiles update only from events already revealed in the match,
+    while structured reactions let every supporter claim the moment without
+    losing the live context.
+  </p>
+  <figure>
+    <img
+      src="/projects/matchroom/player-view.png"
+      alt="Live player profile with match stats, actions, and full squads"
+    />
+    <figcaption>Live player view &mdash; spoiler-free, clock-aware stats.</figcaption>
+  </figure>
+  <figure>
+    <img
+      src="/projects/matchroom/chat.png"
+      alt="Live moment reactions from supporters in the room"
+    />
+    <figcaption>Synchronized crowd reactions in the room.</figcaption>
+  </figure>
+  <p>
+    Debate rooms turn breaking stories into camp-vs-camp chat: share
+    reporting, earn source receipts, compete as factions, and challenge claims
+    with a retrieval-grounded Analyst that cites the room&rsquo;s own
+    evidence.
+  </p>
+  <figure>
+    <img
+      src="/projects/matchroom/debate-chatroom-example.png"
+      alt="MatchRoom debate room with source shelf, grounded Analyst responses, faction scoring, and chat"
+    />
+    <figcaption>
+      A debate room &mdash; source shelf, grounded Analyst, and faction
+      scoring.
+    </figcaption>
+  </figure>
+
+  {/* ---------------- DEMO ---------------- */}
+  <h2>Demo</h2>
+  <p>A full walkthrough of the live room and debate room loops:</p>
+  <div class="video">
+    <iframe
+      src="https://www.youtube.com/embed/Zr4qIZoq3kU"
+      title="MatchRoom product demo walkthrough"
+      loading="lazy"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen></iframe>
+  </div>
+
+  {/* ---------------- HOW IT WORKS ---------------- */}
+  <h2>How it works</h2>
+  <p>
+    The architectural principle everything hangs off: <strong>the LLM
+    authors, the engine settles.</strong> A language model never decides who
+    wins anything &mdash; it only writes verifiable questions that a
+    deterministic engine resolves.
+  </p>
+  <ol>
+    <li>
+      The <strong>ReplayEngine</strong> (<code>src/lib/replay/engine.ts</code>)
+      ticks a real match timeline out on a clock, emitting structured{" "}
+      <code>MatchEvent</code>s &mdash; the demo replays the 2022 World Cup
+      final. A production feed can replace this source without changing
+      anything downstream.
+    </li>
+    <li>
+      On interesting events (penalty, dangerous free kick, late one-goal
+      game), the client calls <code>POST /api/producer</code>. The producer
+      LLM sees a rolling window of recent events and either declines or
+      returns a prediction card as strict JSON &mdash; question, two options,
+      pick window, and a <strong>resolution rule</strong> (&ldquo;resolves
+      YES if a <code>penalty_result</code> event with{" "}
+      <code>outcome=scored</code> arrives within 120s&rdquo;).
+    </li>
+    <li>
+      <a href="https://github.com/phamhscott/matchroom/blob/main/src/lib/producer/schema.ts">Zod validates </a>
+      the generation; malformed output is dropped, and can&rsquo;t-miss
+      moments fall back to hardcoded safety-net cards.
+    </li>
+    <li>
+      The card is written to Supabase; <strong>Realtime</strong> broadcasts it
+      to everyone in the room. Picks stream in live with a countdown.
+    </li>
+    <li>
+      <strong>AI personas</strong> (homer / stat-nerd / chaos agent) pick a
+      side via deterministic bias and drop one line of in-character trash talk
+      via a fast LLM call &mdash; so an API hiccup never freezes a pick, only
+      the flavor text.
+    </li>
+    <li>
+      When the resolving event arrives in the stream, the engine settles the
+      card, points burst, and the leaderboard reshuffles.
+    </li>
+    <li>
+      In debate rooms, <code>POST /api/grade-source</code> safely extracts a
+      submitted page and asks an LLM referee for relevance, credibility, and
+      camp-support scores. The server validates those scores, computes the
+      payout itself, blocks duplicate URL credit, and publishes the receipt
+      through the same reaction stream everything else uses.
+    </li>
+    <li>
+      <strong>The Analyst</strong> (<code>POST /api/debater</code>) retrieves
+      text from the room&rsquo;s starter and user-submitted sources, combines
+      it with recent chat, and argues for the opposing camp using
+      room-specific evidence &mdash; grounded generation over a room-sized
+      corpus, no vector store needed.
+    </li>
+  </ol>
+
+  {/* ---------------- TECHNICAL HIGHLIGHTS ---------------- */}
+  <h2>Technical highlights</h2>
+
+  <h3>LLM output that cannot control game results</h3>
+  <p>
+    The producer uses a heuristic pre-filter to avoid unnecessary calls, sends
+    a rolling event window through a provider-independent LLM layer (Anthropic
+    / Groq / xAI / Gemini, in environment-key priority order), and requests a
+    strict prediction schema. The model authors questions and machine-readable
+    rules, but only the event engine determines winners. Priority queues,
+    deterministic fallback cards, request timeouts, and id-based
+    deduplication keep the live room responsive during latency, malformed
+    output, and concurrent clients.
+  </p>
+
+  <h3>Synchronized multiplayer replay</h3>
+  <p>
+    Every shared room stores a replay epoch and speed in Postgres. On join,{" "}
+    <code>useRoom</code> compares server and client timestamps, silently seeks
+    through elapsed events, and advances from the shared wall clock. Supabase
+    Realtime broadcasts cards, picks, reactions, member updates, and
+    room-wide replay resets &mdash; that&rsquo;s the entire multiplayer layer,
+    no custom websocket code. Late joiners restore a persisted snapshot before
+    subscribing.
+  </p>
+
+  <h3>Competitive integrity and graceful degradation</h3>
+  <p>
+    Faction scoring separates expression from competition: unlimited chat
+    scores nothing, each member can contribute crowd energy only once per
+    moment, and conviction is a limited resource spent when a pick is
+    submitted. Minority-pick bonuses reward correct contrarian calls without
+    handing out free comeback points. The same pure award function runs
+    locally and on the resolution route. Without Supabase or an LLM key, the
+    app still runs in a solo mode with local scoring and deterministic
+    fallbacks &mdash; every external dependency has a rehearsed failure mode.
+  </p>
+
+  {/* ---------------- CHALLENGES ---------------- */}
+  <h2>Challenges worth remembering</h2>
+  <p>
+    <strong>The spoiler problem.</strong> Player profiles originally
+    aggregated stats from the full match timeline &mdash; so clicking a
+    player at kickoff already showed his final goal tally. In a
+    replay-as-live product that&rsquo;s fatal. I rebuilt player profiles to
+    seed rosters from lineups but aggregate stats <em>only from events already
+    revealed by the clock</em>, so the Players tab updates live with the feed
+    and never leaks the future.
+  </p>
+  <p>
+    <strong>LLM latency versus a live clock.</strong> A prediction card that
+    arrives after the penalty is worthless. Producer and persona calls run
+    under tight timeouts (~1.5s) with heuristic pre-filters and deterministic
+    fallbacks; slower calls that aren&rsquo;t on the replay clock (source
+    grading, the Analyst) get a separate 8s budget. Designing every AI
+    feature so its failure mode is <em>silence or a fallback, never
+    breakage</em> was the single most repeated lesson of the weekend.
+  </p>
+  <p>
+    <strong>Realtime consistency.</strong> Late joiners need history plus
+    live updates without duplicates, and your own writes echo back through
+    the subscription. I ended up with id-based deduplication everywhere,
+    bootstrap-then-subscribe ordering, and a rule that payouts to{" "}
+    <em>yourself</em> apply from the API response while everyone else&rsquo;s
+    arrive via Realtime.
+  </p>
+  <p>
+    <strong>Synchronized minigames without a server tick.</strong> The
+    Receipt Battle minigame needed every browser to agree on when a
+    90-second window ends and who won, without adding server-side
+    resolution. The trick: the battle marker carries its end time{" "}
+    <em>in replay-clock seconds</em>, and every client computes the same
+    per-camp totals from the same graded receipts inside the window.
+    Deterministic inputs produce identical outcomes on every screen.
+  </p>
+  <p>
+    <strong>Live data temptation.</strong> I investigated intercepting a
+    commercial live-scores API and decided against it &mdash; signed headers,
+    ToS, brittle. The replay engine emits the same <code>MatchEvent</code>{" "}
+    contract a real provider adapter would, so swapping in live data is a
+    drop-in change rather than a rewrite.
+  </p>
+
+  {/* ---------------- SCOPE / HONEST NOTE ---------------- */}
+  <h2>What shipped, and what's next</h2>
+  <p>
+    This was solo, built in a hackathon weekend &mdash; so the scope is
+    deliberately a working prototype, not a production app. There&rsquo;s no
+    authentication (members are bound by a local profile, not an account), no
+    rate limiting on the LLM-backed routes, and scoring runs through
+    application code rather than atomic Postgres functions. The replay engine
+    streams a recorded match rather than a live feed, though it emits the
+    same <code>MatchEvent</code> contract a real provider adapter would need,
+    so that&rsquo;s meant to be a drop-in swap rather than a rewrite.
+  </p>
+  <p>
+    Next up, roughly in priority order: real live fixtures behind the
+    existing event adapter, authentication binding members to accounts, rate
+    limits and atomic scoring functions, persisted custom rooms with invites,
+    and more sports &mdash; the event contract and resolution rules
+    generalize well beyond football.
+  </p>
+
+  {/* ---------------- REFLECTION ---------------- */}
+  <h2>What I took away</h2>
+  <ul>
+    <li>
+      <strong>Determinism is the product.</strong> Every &ldquo;wow&rdquo;
+      moment (the AI invents a prediction, the referee pays your receipt) is
+      trustworthy only because a boring deterministic layer settles it.
+      Splitting authorship from settlement made hallucination structurally
+      impossible.
+    </li>
+    <li>
+      <strong>Design the failure mode first.</strong> Timeouts, fallback
+      cards, fallback grades, canned Analyst lines &mdash; deciding what
+      happens when the LLM <em>doesn&rsquo;t</em> answer shaped the
+      architecture more than the happy path did.
+    </li>
+    <li>
+      <strong>Transport reuse beats new infrastructure.</strong> Encoding new
+      message kinds into one existing Realtime stream let me ship a referee, a
+      grounded debater, and a synced minigame in a weekend without a single
+      migration.
+    </li>
+    <li>
+      <strong>Incentive design is real design.</strong>{" "}
+      &ldquo;Chat scores nothing, unique reactions score once, conviction is
+      scarce, contrarians get paid&rdquo; took as much iteration as any code
+      &mdash; and it&rsquo;s what makes the room feel competitive instead of
+      spammy.
+    </li>
+  </ul>
+</ProjectLayout>

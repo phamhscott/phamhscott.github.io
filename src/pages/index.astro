@@ -4,7 +4,7 @@
 // component, then arranges everything into sections.
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ProjectCard from "../components/ProjectCard.astro";
-import { projects } from "../data/projects";
+import { projects, inProgress } from "../data/projects";
 import { coursework } from "../data/coursework";
 
 // ---- EDIT YOUR CONTACT LINKS HERE ----
@@ -20,21 +20,40 @@ const links = {
   <section class="hero">
     <h1>Scott Pham </h1>
     <p class="lead">
-      Hello! This is my corner of the internet, where I
+      Hello! I'm a CS student at UCSD. This is where I
       showcase what I'm working on and write about what I'm learning.
     </p>
   </section>
 
-  {/* ---------------- PROJECTS ---------------- */}
+  {/* ---------------- SELECTED WORK ---------------- */}
   {/* `id="projects"` gives this section an anchor, so links like
-      "/#projects" (used by the project detail pages) scroll here. */}
+      "/#projects" (used by the project detail pages) scroll here.
+      Order is set in data/projects.ts — first in the list shows first. */}
   <section class="section" id="projects">
-    <h2>Projects</h2>
+    <h2>Selected work</h2>
     {/* Loop over the projects list and render a row for each one. */}
     <div class="project-list">
       {projects.map((project) => <ProjectCard {...project} />)}
     </div>
   </section>
+
+  {/* ---------------- CURRENTLY BUILDING ---------------- */}
+  {/* Work-in-progress projects live in their own group so finished work
+      stays front-and-center. This whole section hides itself if the
+      `inProgress` list in data/projects.ts is empty. */}
+  {
+    inProgress.length > 0 && (
+      <section class="section">
+        <h2>Currently building</h2>
+        <p class="section-intro">Projects I'm actively working on right now.</p>
+        <div class="project-list">
+          {inProgress.map((project) => (
+            <ProjectCard {...project} />
+          ))}
+        </div>
+      </section>
+    )
+  }
 
   {/* ---------------- COURSEWORK ---------------- */}
   <section class="section">
