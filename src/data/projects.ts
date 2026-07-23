@@ -21,6 +21,11 @@ export interface Project {
   repo?: string; // optional source-code link
   status?: string; // optional pill, e.g. "In progress" — for WIP/private work
   caseStudy?: string; // optional link to a detail page, e.g. "/projects/ait"
+  // When the project was actually worked on (not when the write-up was
+  // published). `date` is an ISO string used to sort case studies on the blog;
+  // `dateLabel` is what's shown, e.g. "Jul 2026" or just "2025".
+  date?: string;
+  dateLabel?: string;
 }
 
 // ---- SELECTED WORK ----  (ordered best-first; top of the list = top of page)
@@ -34,6 +39,20 @@ export const projects: Project[] = [
     // Private repo — the on-site case study stands in for a Code link.
     caseStudy: "/projects/ait",
     url: "https://cse110-sp26-group02.github.io/cse110-sp26-project-site/",
+    date: "2026-06-01",
+    dateLabel: "Jun 2026",
+  },
+  {
+    title: "Felt",
+    description:
+      "An emotional translation studio, and my submission to the IBM AI Builders Challenge (Creative Industries). Bring it a feeling in your own words and Felt reads the emotion inside, then translates that into a design concept you can refine like a collaborator and keep. It runs on IBM watsonx, prototyped in LangFlow and shipped on LangChain, and was built with IBM Bob.",
+    tags: ["watsonx", "LangChain", "LangFlow", "FastAPI", "Next.js", "three.js", "IBM Bob"],
+    status: "Challenge submission",
+    caseStudy: "/projects/felt",
+    url: "https://felt-murex.vercel.app/",
+    repo: "https://github.com/phamhscott/felt",
+    date: "2026-07-23",
+    dateLabel: "Jul 2026",
   },
   {
     title: "MatchRoom",
@@ -44,6 +63,8 @@ export const projects: Project[] = [
     caseStudy: "/projects/matchroom",
     url: "https://matchroom-ten.vercel.app/",
     repo: "https://github.com/phamhscott/matchroom",
+    date: "2026-07-12",
+    dateLabel: "Jul 2026",
   },
   {
     title: "Studio Ghibli Music Generation",
@@ -59,6 +80,8 @@ export const projects: Project[] = [
       "A speculative-sound project imagining a future where technology has drowned out nature and silence itself. I led it end to end: research, proposal, a graphic score, and producing the final multi-tracked audio piece. From a UCSD course on speculating about the future through sound.",
     tags: ["Sound Design", "Audio Production", "Multi-track Editing", "Speculative Design", "Project Lead"],
     caseStudy: "/projects/sound-speculation",
+    date: "2025-06-01",
+    dateLabel: "2025",
   },
   {
     title: "College Earnings Data Analysis",

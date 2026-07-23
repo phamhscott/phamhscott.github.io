@@ -1,14 +1,18 @@
 ---
-// blog/index.astro — lists all your posts (the "/blog" page).
+// blog/index.astro — the "/blog" page.
 //
-// getCollection() reads every file in the "blog" collection we defined in
-// src/content.config.ts. We hide drafts, sort newest-first, then render a list.
+// One unified, newest-first list holds two kinds of entry:
+//   • Case studies — pulled straight from data/projects.ts (any project with a
+//     `caseStudy` link). Each row links directly to its case-study page, so
+//     there's a single source of truth and nothing to keep in sync.
+//   • Posts — the Markdown blog collection in src/content/blog.
+//
+// Filter tabs (All / Case studies / Writing) show/hide rows client-side. Every
+// row is dated by when the work actually happened (project `date`, or a post's
+// pubDate), which is why they interleave chronologically.
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getCollection } from "astro:content";
-
-const posts = (await getCollection("blog"))
-  .filter((post) => !post.data.draft)
-  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+import { projects, inProgress } from "../../data/projects";
 
 const formatDate = (date: Date) =>
   date.toLocaleDateString("en-US", {
@@ -16,45 +20,171 @@ const formatDate = (date: Date) =>
     month: "short",
     day: "numeric",
   });
+
+// A single shape both kinds of entry collapse into, so we can sort them together.
+interface Entry {
+  title: string;
+  description: string;
+  href: string;
+  kind: "case-study" | "post";
+  kindLabel: string;
+  sort: number; // ms timestamp, for ordering
+  dateLabel: string; // what's shown
+}
+
+const caseStudyEntries: Entry[] = [...projects, ...inProgress]
+  .filter((p) => p.caseStudy)
+  .map((p) => ({
+    title: p.title,
+    description: p.description,
+    href: p.caseStudy!,
+    kind: "case-study",
+    kindLabel: "Case study",
+    sort: p.date ? new Date(p.date).valueOf() : 0,
+    dateLabel: p.dateLabel ?? "",
+  }));
+
+const postEntries: Entry[] = (await getCollection("blog"))
+  .filter((post) => !post.data.draft)
+  .map((post) => ({
+    title: post.data.title,
+    description: post.data.description,
+    href: `/blog/${post.id}/`,
+    kind: "post",
+    kindLabel: "Post",
+    sort: post.data.pubDate.valueOf(),
+    dateLabel: formatDate(post.data.pubDate),
+  }));
+
+const entries = [...caseStudyEntries, ...postEntries].sort(
+  (a, b) => b.sort - a.sort,
+);
+
+const counts = {
+  all: entries.length,
+  "case-study": caseStudyEntries.length,
+  post: postEntries.length,
+};
 ---
 
-<BaseLayout title="Blog — Scott" description="Writing and notes.">
+<BaseLayout title="Blog — Scott" description="Case studies, writing, and notes.">
   <section class="section">
     <h1>Blog</h1>
 
-    {posts.length === 0 && <p>No posts yet — check back soon!</p>}
+    <div class="tabs" role="tablist" aria-label="Filter entries">
+      <button class="tab is-active" role="tab" aria-selected="true" data-filter="all">
+        All <span class="count">{counts.all}</span>
+      </button>
+      <button class="tab" role="tab" aria-selected="false" data-filter="case-study">
+        Case studies <span class="count">{counts["case-study"]}</span>
+      </button>
+      <button class="tab" role="tab" aria-selected="false" data-filter="post">
+        Writing <span class="count">{counts.post}</span>
+      </button>
+    </div>
 
-    <ul class="post-list">
+    {entries.length === 0 && <p>Nothing here yet — check back soon!</p>}
+
+    <ul class="entry-list">
       {
-        posts.map((post) => (
-          <li>
-            {/* post.id comes from the filename, e.g. "hello-world". */}
-            <a href={`/blog/${post.id}/`} class="post-link">
-              <span class="post-title">{post.data.title}</span>
-              <time datetime={post.data.pubDate.toISOString()}>
-                {formatDate(post.data.pubDate)}
-              </time>
+        entries.map((e) => (
+          <li data-kind={e.kind}>
+            <a href={e.href} class="entry-link">
+              <span class="entry-title">{e.title}</span>
+              <span class="entry-meta">
+                <span class:list={["kind-tag", e.kind]}>{e.kindLabel}</span>
+                {e.dateLabel && <time>{e.dateLabel}</time>}
+              </span>
             </a>
-            <p class="post-desc">{post.data.description}</p>
+            <p class="entry-desc">{e.description}</p>
           </li>
         ))
       }
     </ul>
+
+    {/* Shown only when a filter hides every row (no case studies / no posts). */}
+    <p class="empty-filter" hidden>Nothing in this view yet.</p>
   </section>
 </BaseLayout>
+
+<script>
+  const tabs = document.querySelectorAll<HTMLButtonElement>(".tab");
+  const items = document.querySelectorAll<HTMLLIElement>(".entry-list li");
+  const emptyMsg = document.querySelector<HTMLParagraphElement>(".empty-filter");
+
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const filter = tab.dataset.filter;
+
+      tabs.forEach((t) => {
+        const active = t === tab;
+        t.classList.toggle("is-active", active);
+        t.setAttribute("aria-selected", String(active));
+      });
+
+      let visible = 0;
+      items.forEach((li) => {
+        const show = filter === "all" || li.dataset.kind === filter;
+        li.hidden = !show;
+        if (show) visible++;
+      });
+
+      if (emptyMsg) emptyMsg.hidden = visible !== 0;
+    });
+  });
+</script>
 
 <style>
   .section {
     margin-block: var(--space-md) var(--space-lg);
   }
-  .post-list {
+
+  /* --- Filter tabs --- */
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: var(--space-sm) 0 var(--space-md);
+  }
+  .tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.3rem 0.85rem;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+  }
+  .tab:hover {
+    color: var(--text);
+  }
+  .tab.is-active {
+    color: var(--bg);
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .tab .count {
+    font-size: 0.75rem;
+    font-weight: 700;
+    opacity: 0.8;
+  }
+
+  /* --- Unified entry list --- */
+  .entry-list {
     list-style: none;
     padding: 0;
     display: flex;
     flex-direction: column;
     gap: var(--space-md);
+    margin: 0;
   }
-  .post-link {
+  .entry-link {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
@@ -63,17 +193,40 @@ const formatDate = (date: Date) =>
     font-weight: 700;
     font-size: 1.2rem;
   }
-  .post-link:hover {
+  .entry-link:hover {
     color: var(--accent);
     text-decoration: none;
   }
-  .post-link time {
+  .entry-meta {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--space-sm);
+    flex-shrink: 0;
+  }
+  .entry-meta time {
     color: var(--text-muted);
     font-size: 0.85rem;
     font-weight: 400;
-    flex-shrink: 0; /* keep the date on one line */
   }
-  .post-desc {
+  /* Type pill. Case study = accent outline; post = quiet grey. */
+  .kind-tag {
+    align-self: center;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-radius: 999px;
+    padding: 0.12rem 0.5rem;
+  }
+  .kind-tag.case-study {
+    color: var(--accent);
+    border: 1px solid var(--accent);
+  }
+  .kind-tag.post {
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+  .entry-desc {
     margin: 0.3rem 0 0;
     color: var(--text-muted);
   }

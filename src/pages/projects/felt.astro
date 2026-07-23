@@ -1,0 +1,377 @@
+---
+// felt.astro — the case-study page for Felt, my submission to the IBM AI
+// Builders Challenge (July 2026, Creative Industries theme). Lives at
+// "/projects/felt/". Uses ProjectLayout.
+//
+// Images live in  public/projects/felt/  and are referenced as
+// "/projects/felt/<file>". They're pulled from the project's own docs.
+import ProjectLayout from "../../layouts/ProjectLayout.astro";
+---
+
+<ProjectLayout
+  title="Felt"
+  tagline="An emotional translation studio. Bring it a feeling in your own words and Felt reads the emotion inside, then translates that into a design concept you can refine like a collaborator and keep. My submission to the IBM AI Builders Challenge."
+  status="Challenge submission"
+  tags={[
+    "watsonx",
+    "LangChain",
+    "LangFlow",
+    "FastAPI",
+    "Next.js",
+    "three.js",
+    "IBM Bob",
+  ]}
+  url="https://felt-murex.vercel.app/"
+  repo="https://github.com/phamhscott/felt"
+>
+  {/* ---------------- OVERVIEW ---------------- */}
+  <h2>Overview</h2>
+  <p>
+    Felt is an emotional translation studio, and my submission to the{" "}
+    <strong>IBM AI Builders Challenge</strong> (July 2026) under the{" "}
+    <strong>Creative Industries</strong> theme. You bring it a feeling in your
+    own words, a memory, a lyric, or the way a painting sat with you. Felt reads
+    the emotion inside it and translates that into a design concept you can
+    refine like a collaborator, then it keeps everything you make.
+  </p>
+  <figure>
+    <img
+      src="/projects/felt/banner.png"
+      alt="Felt — an emotional translation studio. Three overlapping windows show the studio, the lookbook, and a palette page, all in a warm amber palette."
+    />
+  </figure>
+
+  {/* ---------------- WHY ---------------- */}
+  <h2>Why I built it</h2>
+  <p>
+    The challenge asked for AI tools that expand creative potential, and it
+    pushed one question in particular. How can AI act as a creative partner
+    rather than just a content generator? I care a lot about art and fashion,
+    and what makes them special to me is expression. The whole point of a piece
+    is the feeling behind it, so I wanted to build around the feeling itself.
+  </p>
+  <p>
+    That became the idea I landed on. Let someone start from an emotion and give
+    them a partner that carries that emotion through the whole creative arc.
+    You seed in with a feeling, you get a lens to point it somewhere before you
+    commit, and out comes a concept with its own moodboard, palette, and
+    textures. From there you can move around the piece and actually feel it in
+    the playground, sketch on it to keep ideating, and finally bind everything
+    into a lookbook that turns loose fragments into something concrete you can
+    return to for inspiration.
+  </p>
+  <p>
+    Most creative tools ask you to flatten a feeling into keywords first. To get
+    anything out of them you turn <em>&ldquo;the last warm evening of summer,
+    sitting on the fire escape with someone I was about to lose&rdquo;</em> into
+    <code>warm, amber, nostalgic, oversized</code>, and the feeling is already
+    lost at step one. Then a palette tool, an image model, and a moodboard tool
+    each re-read those words on their own, so what comes back shares vocabulary
+    while disagreeing about everything else. And a diffusion model hands you a
+    picture, not something you can work on. You cannot say <em>&ldquo;this one
+    swatch, deeper and more weathered&rdquo;</em> without re-rolling the prompt
+    and losing the parts you liked. I wanted to fix both, keep the feeling
+    intact on the way in, and hand back something you can genuinely edit.
+  </p>
+
+  {/* ---------------- WHAT I BUILT ---------------- */}
+  <h2>What I built</h2>
+  <p>
+    You start with one field. Write the feeling, pick what to translate it into
+    (a garment, an art piece, a palette, a poem), and optionally choose a lens
+    to read it through. The lens is a parameter, not part of the feeling, so the
+    same emotion through <em>gorpcore</em> and through <em>baroque</em> ends up
+    somewhere different.
+  </p>
+  <p>
+    The concept arrives whole. A title, a short narrative, a cover rendered from
+    its own moodboard, a colour story, and material choices. The thread on the
+    right is what Felt read, the emotional profile it translated from, stated
+    plainly so you can argue with it rather than guess at a hidden state. The
+    interface even takes on the concept&rsquo;s own colour.
+  </p>
+  <figure>
+    <img
+      src="/projects/felt/studio.png"
+      alt="The Felt studio. A concept titled 'Whispers of Summer' with a cover image and narrative on the left, and a thread on the right showing the emotional profile — quiet longing at 0.70, nostalgia, melancholy, and a named tension."
+    />
+    <figcaption>
+      The studio. On the right, &ldquo;what Felt read&rdquo; is the emotional
+      profile every other stage translates from.
+    </figcaption>
+  </figure>
+  <p>
+    Before committing to the cover, you get three loose studies of the
+    direction, cheap and fast, meant for ideation. Alongside them the colour
+    story is editable in place and each material carries a close-up swatch dyed
+    in the palette. Pin a colour into the composer and a refine focuses there,
+    so <em>&ldquo;make this one deeper and more weathered&rdquo;</em> edits that
+    one swatch instead of rewriting the whole concept.
+  </p>
+  <figure>
+    <img
+      src="/projects/felt/sketches.png"
+      alt="Three example fashion sketches of a flowing dress, with an 'add your own' tile, above a colour story (Soft Peach, Pale Pink, Warm Beige) and a texture and material list."
+    />
+    <figcaption>
+      Loose studies, an editable colour story, and materials, each swatch dyed
+      in the concept&rsquo;s palette.
+    </figcaption>
+  </figure>
+  <p>
+    You can also draw directly. Open any study full screen and sketch over it in
+    the concept&rsquo;s own palette, or upload your own. Realizing a sketch
+    renders a finished cover guided by your actual lines, so the marks you made
+    survive into the result rather than getting re-rolled from a prompt.
+  </p>
+  <figure>
+    <img
+      src="/projects/felt/editor.png"
+      alt="The Felt sketch editor. A dress study shown full screen with hand-drawn marks over it — a deeper V neckline, a belt at the waist, and a patch pocket — plus brush, eraser, colour, and size controls."
+    />
+    <figcaption>
+      Draw right on a study. Those lines guide the finished render.
+    </figcaption>
+  </figure>
+  <p>
+    The playground drapes the concept as a real-time cloth simulation whose
+    physics come from the emotional profile, so a heavy, still feeling hangs
+    differently from an airy, charged one. The fabric is your own generated
+    piece. This is the part where you get to feel and move the idea rather than
+    only read it.
+  </p>
+  <figure>
+    <img
+      src="/projects/felt/playground.png"
+      alt="The Felt fabric playground. A draped garment rendered as a real-time cloth simulation, with a wind slider and material selector (chiffon, silk, linen, velvet, wool, denim, leather) below it."
+    />
+    <figcaption>
+      The playground. The drape&rsquo;s physics are read from the same
+      emotional profile.
+    </figcaption>
+  </figure>
+  <p>
+    Nothing is disposable. Every translation goes on the shelf, and the lookbook
+    binds all of an idea&rsquo;s artifacts into one collection you flip through,
+    typeset like something printed. It is where the fragments become concrete,
+    and where flipping back through past work can spark the next one.
+  </p>
+  <figure>
+    <img
+      src="/projects/felt/lookbook-plate.png"
+      alt="A lookbook hero plate. A full-bleed cover image of a cream dress in warm evening light, with the title 'Whispers of Summer' and its narrative set over it."
+    />
+    <figcaption>
+      The lookbook. Each idea leads with a full-bleed plate, then its studies,
+      renders, palette, and materials.
+    </figcaption>
+  </figure>
+
+  {/* ---------------- DEMO ---------------- */}
+  <h2>Demo</h2>
+  <p>
+    A short walkthrough and presentation of Felt, from a feeling to a finished
+    lookbook.
+  </p>
+  <div class="video">
+    <iframe
+      src="https://www.youtube.com/embed/Ob8yELka6PE"
+      title="Felt demo and presentation walkthrough"
+      loading="lazy"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen></iframe>
+  </div>
+
+  {/* ---------------- HOW IT WORKS ---------------- */}
+  <h2>How it works</h2>
+  <p>
+    The one decision everything hangs on is that the <strong>feeling itself </strong>
+    is what the system passes around. Any seed becomes a structured{" "}
+    <code>EmotionalProfile</code>, a primary emotion with intensity, undertones,
+    a named tension, and physical qualities like energy, temperature, and
+    weight. That profile, not your original sentence, is what every downstream
+    stage translates. The palette, the silhouette notes, the materials, the
+    generated imagery, and even the physics of the cloth simulation all derive
+    from the same profile, so they agree with each other instead of being four
+    separate prompts.
+  </p>
+
+  {/* The high-level pipeline, adapted from the project's own README. */}
+  <figure class="archflow" aria-label="Felt's pipeline. A seed becomes an EmotionalProfile via the Emotion Interpreter, then a DesignConcept via the Design Translator, which feeds the studio. The Refinement Agent loops edits back into the studio.">
+    <div class="af-inner">
+    <p class="af-seed">a seed, in words. a memory, a lyric, how a painting sat with you</p>
+    <p class="af-arrow" aria-hidden="true">↓</p>
+    <div class="af-stage">
+      <span class="af-name">Emotion Interpreter</span>
+      <code class="af-artifact">EmotionalProfile</code>
+      <span class="af-desc">the universal format. primary + undertones, tension, energy · temperature · weight, texture words, confidence</span>
+    </div>
+    <p class="af-arrow" aria-hidden="true">↓</p>
+    <div class="af-stage">
+      <span class="af-name">Design Translator</span>
+      <code class="af-artifact">DesignConcept</code>
+      <span class="af-desc">theme · palette · textures · form notes · moodboard prompt</span>
+    </div>
+    <p class="af-arrow" aria-hidden="true">↓</p>
+    <div class="af-studio">
+      <span class="af-name">The studio</span>
+      <span class="af-desc">cover · sketches · colour · material · form · fabric playground</span>
+    </div>
+    {/* The refine loop: edits go down into the agent, the reworked concept comes back up. */}
+    <div class="af-cycle" aria-hidden="true">
+      <span class="af-cycle-leg"><span class="af-cycle-arrow">↓</span>refine</span>
+      <span class="af-cycle-leg"><span class="af-cycle-arrow">↑</span>reworked concept</span>
+    </div>
+    <div class="af-stage af-refine">
+      <span class="af-name">Refinement Agent</span>
+      <span class="af-desc">say what to change, and pin a colour or material to focus the edit on one thing</span>
+    </div>
+    </div>
+    <figcaption>The pipeline end to end, adapted from the project&rsquo;s README.</figcaption>
+  </figure>
+  <p>
+    Every language task runs on <strong>IBM watsonx</strong>, and every one uses
+    structured output. The models are bound to schemas and return typed objects,
+    so there is no prose parsing anywhere in the system. Three chains each do one
+    job. An emotion interpreter reads the feeling and names the tension, a design
+    translator turns that profile into a concept, and a refinement agent takes
+    the whole current concept plus your feedback and any pinned items and reworks
+    only what you asked for. That refiner is where &ldquo;collaborator, not
+    generator&rdquo; actually lives.
+  </p>
+  <p>
+    I prototyped the flow visually in <strong>LangFlow</strong> before moving it
+    to <strong>LangChain</strong> in production. Building it on a canvas first
+    made the shape of each chain obvious, the prompt template feeding watsonx,
+    then a structured-output step binding the model to the schema, so I could see
+    and test the whole path before writing the production version.
+  </p>
+  <figure>
+    <img
+      src="/projects/felt/langflow-canvas.png"
+      alt="The LangFlow canvas for Felt's emotion interpreter. Nodes wired left to right — Chat Input, a Prompt Template, an IBM watsonx.ai model, a Structured Output step bound to llama-3-3-70b, and a Chat Output."
+    />
+    <figcaption>
+      The emotion interpreter in LangFlow. Chat input, a prompt template, the
+      watsonx model, then a structured-output step bound to the schema.
+    </figcaption>
+  </figure>
+  <p>
+    Reliability was designed in rather than hoped for. watsonx&rsquo;s free tier
+    returns errors under load, so a Gemini fallback is attached and both models
+    are configured to fail fast instead of backing off for two minutes.
+    Generated imagery runs on a separate provider, and its absence degrades the
+    app rather than breaking it. Reopening a past idea reads from local storage
+    and spends no image quota, so it is instant even after a reload.
+  </p>
+
+  {/* ---------------- BUILT WITH BOB ---------------- */}
+  <h2>Built with IBM Bob</h2>
+  <p>
+    The challenge required IBM Bob as the primary development tool, and it did
+    not just advise on Felt, it built it, under the repo&rsquo;s own process.
+    Every change went issue to branch to PR to green CI to squash-merge, with a
+    decision record for anything architecturally load-bearing. Where it earned
+    its place was diagnosis. One example, a two-minute hang on every busy
+    translate looked like plain rate limiting but traced back to the watsonx
+    wrapper never forwarding its retry setting, so the SDK default burned two
+    minutes before the fallback was ever reached. Direction stayed with me
+    though. The product calls, and several rejected designs, were mine, and
+    Bob&rsquo;s job was to diagnose, propose, build, and prove.
+  </p>
+
+  {/* ---------------- REFLECTION ---------------- */}
+  <h2>What I took away</h2>
+  <p>
+    Felt let me put the thing I actually care about, expression, at the center of
+    an engineering project. The lesson that stuck was that one good abstraction
+    does most of the work. Making the emotional profile the single format
+    everything translates from is what turns a pile of AI features into
+    something that coheres, and choosing structured output everywhere is what
+    makes it a tool you can edit rather than a slot machine you re-roll. It also
+    reminded me that the honest failure mode matters as much as the happy path,
+    every part of Felt still does something graceful when a model is slow or a
+    key is missing.
+  </p>
+</ProjectLayout>
+
+<style>
+  /* --- The high-level pipeline diagram ---
+     A centered vertical flow: each stage shows its name, the typed artifact it
+     produces, and a short description, all stacked and centered. It ends in the
+     studio, with a refine cycle that feeds edits down and the reworked concept
+     back up. Uses the site's design tokens so it matches light and dark. */
+  .archflow {
+    text-align: center;
+  }
+  /* The figure spans the full text column; this inner wrapper is what actually
+     centers the flow, so the layout's global figure margin can't fight it. */
+  .archflow .af-inner {
+    max-width: 30rem;
+    margin-inline: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .archflow .af-seed {
+    font-style: italic;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin: 0;
+    max-width: 26rem;
+  }
+  .archflow .af-arrow {
+    color: var(--accent);
+    font-size: 1.2rem;
+    margin: 0.4rem 0;
+  }
+  .archflow .af-stage,
+  .archflow .af-studio {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-subtle);
+    padding: var(--space-sm);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .archflow .af-name {
+    font-weight: 700;
+  }
+  .archflow .af-artifact {
+    font-size: 0.9rem;
+    color: var(--accent);
+  }
+  .archflow .af-desc {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    max-width: 24rem;
+  }
+  /* Two legs make the loop legible: down into the agent, back up to the studio. */
+  .archflow .af-cycle {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-md);
+    margin: 0.4rem 0;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+  }
+  .archflow .af-cycle-leg {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.3;
+  }
+  .archflow .af-cycle-arrow {
+    color: var(--accent);
+    font-size: 1.2rem;
+  }
+  .archflow .af-refine {
+    border-style: dashed;
+    background: transparent;
+  }
+</style>

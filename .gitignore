@@ -18,3 +18,6 @@ yarn-error.log*
 
 # macOS / editor cruft
 .DS_Store
+
+website.code-workspace
+
